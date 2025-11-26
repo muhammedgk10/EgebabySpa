@@ -36,6 +36,7 @@ export interface BlogPost {
   id: string;
   title: string;
   excerpt: string;
+  content?: string; // Full content of the blog post
   date: string;
   imageUrl: string;
   category: string;

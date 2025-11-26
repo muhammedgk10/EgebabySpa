@@ -18,20 +18,16 @@ const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
       <div className="container mx-auto px-4 flex flex-col-reverse md:flex-row items-center relative z-10 gap-12">
         {/* Text Content */}
         <div className="w-full md:w-1/2 text-center md:text-left pt-8 md:pt-0">
-          <div className="inline-block px-4 py-1.5 bg-brand/10 text-brand font-bold text-sm rounded-full mb-6 tracking-wide">
-            ✨ İzmir'in En Kapsamlı Bebek Spası
-          </div>
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-800 leading-[1.1] mb-6">
-            Bebeğinizin <br />
+            EGE <br />
             <span className="relative inline-block">
               <span className="bg-gradient-to-r from-brand via-[#4DB6AC] to-brand bg-[length:200%_auto] bg-clip-text text-transparent animate-shimmer">
-                Mutluluğu
+                BABYSPA
               </span>
               <svg className="absolute w-full h-3 -bottom-1 left-0 text-brand-accent opacity-40" viewBox="0 0 100 10" preserveAspectRatio="none">
                  <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="8" fill="none" />
               </svg>
-            </span> <br />
-            Bizim İçin Değerli
+            </span>
           </h1>
           <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed max-w-lg mx-auto md:mx-0">
             Floating ve bebek masajı ile bebeğinizin gelişimini destekleyin, gaz sancılarına veda edin ve eşsiz bir bağ kurun.
@@ -67,20 +63,6 @@ const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
                         className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
-                 </div>
-
-                 {/* Floating badge */}
-                 <div className="absolute top-10 right-0 bg-white/90 backdrop-blur-sm p-4 rounded-2xl shadow-xl border border-white animate-bounce-slow">
-                    <div className="flex items-center gap-3">
-                        <div className="flex -space-x-2">
-                           <div className="w-8 h-8 rounded-full bg-blue-100 border-2 border-white"></div>
-                           <div className="w-8 h-8 rounded-full bg-pink-100 border-2 border-white"></div>
-                           <div className="w-8 h-8 rounded-full bg-yellow-100 border-2 border-white flex items-center justify-center text-[10px] font-bold text-gray-600">+500</div>
-                        </div>
-                        <div className="text-xs font-bold text-gray-700">
-                           Mutlu Aile
-                        </div>
-                    </div>
                  </div>
             </div>
         </div>

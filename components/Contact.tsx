@@ -63,7 +63,7 @@ const Contact: React.FC = () => {
                 </div>
                 <div>
                   <h4 className="font-bold text-gray-800 text-lg">Adresimiz</h4>
-                  <p className="text-gray-600 mt-1">Alsancak Mahallesi, Atatürk Caddesi No:123<br/>Konak, İzmir</p>
+                  <p className="text-gray-600 mt-1">Bahçelievler Mah. Atatürk Bulvarı<br/>Haliliye, Şanlıurfa</p>
                 </div>
               </div>
 

@@ -329,22 +329,21 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, appointments, onUpdat
                        <thead className="bg-slate-50/50 border-b border-slate-100">
                           <tr>
                              <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Tarih</th>
-                             <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Gönderen</th>
+                             <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Ad Soyad</th>
+                             <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">E-posta</th>
                              <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Mesaj</th>
                           </tr>
                        </thead>
                        <tbody className="divide-y divide-slate-50">
                           {contactMessages.length === 0 ? (
-                             <tr><td colSpan={3} className="p-6 text-center text-slate-500">Henüz mesaj yok.</td></tr>
+                             <tr><td colSpan={4} className="p-6 text-center text-slate-500">Henüz mesaj yok.</td></tr>
                           ) : (
                              contactMessages.map(msg => (
                                 <tr key={msg.id} className="hover:bg-slate-50">
-                                   <td className="px-6 py-4 text-xs text-slate-500">{msg.date}</td>
-                                   <td className="px-6 py-4">
-                                      <div className="font-bold text-slate-800 text-sm">{msg.name}</div>
-                                      <div className="text-xs text-slate-400">{msg.email}</div>
-                                   </td>
-                                   <td className="px-6 py-4 text-sm text-slate-600 max-w-md">{msg.message}</td>
+                                   <td className="px-6 py-4 text-xs text-slate-500 font-medium">{msg.date}</td>
+                                   <td className="px-6 py-4 text-sm text-slate-800 font-bold">{msg.name}</td>
+                                   <td className="px-6 py-4 text-xs text-slate-500">{msg.email}</td>
+                                   <td className="px-6 py-4 text-sm text-slate-600 max-w-md truncate" title={msg.message}>{msg.message}</td>
                                 </tr>
                              ))
                           )}

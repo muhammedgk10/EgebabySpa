@@ -18,7 +18,7 @@ const Footer: React.FC = () => {
               Ege<span className="text-brand">BabySpa</span>
             </h3>
             <p className="text-gray-400 leading-relaxed mb-6 max-w-sm">
-              İzmir'in kalbinde, bebekleriniz için en hijyenik ve konforlu spa deneyimini sunuyoruz. Bebeğinizin sağlığı ve mutluluğu önceliğimizdir.
+              Şanlıurfa'nın kalbinde, bebekleriniz için en hijyenik ve konforlu spa deneyimini sunuyoruz. Bebeğinizin sağlığı ve mutluluğu önceliğimizdir.
             </p>
             <div className="flex gap-4">
               <a href="#" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-brand transition-colors">
@@ -49,7 +49,7 @@ const Footer: React.FC = () => {
              <div className="space-y-3 text-sm text-gray-400">
                <div className="flex items-start gap-3">
                  <MapPin size={16} className="text-brand mt-1" />
-                 <span>Konak, İzmir</span>
+                 <span>Haliliye, Şanlıurfa</span>
                </div>
                <div className="flex items-center gap-3">
                  <Phone size={16} className="text-brand" />
