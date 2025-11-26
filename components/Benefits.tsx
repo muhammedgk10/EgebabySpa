@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Smile, Moon, Activity, Brain } from 'lucide-react';
 import { SectionId } from '../types';
@@ -30,18 +31,24 @@ const Benefits: React.FC = () => {
     <section id={SectionId.BENEFITS} className="min-h-screen pt-20 pb-20 bg-brand-light/30">
       <div className="container mx-auto px-4 flex flex-col lg:flex-row items-center gap-12">
         
-        {/* Left Side: Image Grid */}
-        <div className="w-full lg:w-1/2 grid grid-cols-2 gap-4">
+        {/* Left Side: Single Large Image */}
+        <div className="w-full lg:w-1/2 relative px-4 md:px-0 group perspective-1000">
+           {/* Decorative Background Element */}
+           <div className="absolute inset-0 bg-brand/10 rounded-[3rem] transform -rotate-3 scale-95 z-0 transition-all duration-700 ease-out group-hover:rotate-0 group-hover:scale-100 group-hover:bg-brand/20"></div>
+           
            <img 
-             src="https://images.unsplash.com/photo-1519340241574-2cec6aef0c01?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
-             alt="Happy Baby 1" 
-             className="rounded-2xl shadow-lg mt-8 w-full h-64 object-cover"
+             src="https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=800&auto=format&fit=crop" 
+             alt="Happy Relaxed Baby Spa" 
+             className="relative z-10 rounded-[3rem] shadow-2xl w-full h-[500px] object-cover transition-all duration-700 ease-out group-hover:scale-105 group-hover:-translate-y-2 group-hover:shadow-brand/20 border-8 border-white"
            />
-           <img 
-             src="https://images.unsplash.com/photo-1522771753035-1a5b6564f3a4?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
-             alt="Happy Baby 2" 
-             className="rounded-2xl shadow-lg w-full h-64 object-cover"
-           />
+           
+           {/* Floating Badge */}
+           <div className="absolute -bottom-6 -right-4 z-20 bg-white p-4 rounded-2xl shadow-xl animate-bounce-slow hidden md:block group-hover:animate-none group-hover:scale-110 transition-all duration-300">
+              <div className="flex items-center gap-2">
+                 <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                 <span className="text-sm font-bold text-gray-700">%100 Mutluluk</span>
+              </div>
+           </div>
         </div>
 
         {/* Right Side: Content */}
@@ -55,8 +62,8 @@ const Benefits: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {benefits.map((benefit, index) => (
-              <div key={index} className="group flex gap-4 p-4 bg-white rounded-xl shadow-sm border border-brand-light hover:shadow-md transition-shadow">
-                <div className="text-brand shrink-0 group-hover:animate-bounce">
+              <div key={index} className="group/item flex gap-4 p-4 bg-white rounded-xl shadow-sm border border-brand-light hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+                <div className="text-brand shrink-0 group-hover/item:scale-110 transition-transform duration-300">
                   {benefit.icon}
                 </div>
                 <div>

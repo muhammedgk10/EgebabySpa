@@ -1,5 +1,7 @@
+
 import React, { useState } from 'react';
-import { Lock, User, Info, Droplets } from 'lucide-react';
+import { Lock, User, Info, Droplets, Loader2 } from 'lucide-react';
+import { loginUser } from '../services/firebaseService';
 
 interface LoginProps {
   onLogin: () => void;
@@ -10,14 +12,24 @@ const Login: React.FC<LoginProps> = ({ onLogin, onBack }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock authentication
-    if (email === 'admin@egebabyspa.com' && password === 'admin123') {
-      onLogin();
-    } else {
-      setError('Hatalı e-posta veya şifre.');
+    setLoading(true);
+    setError('');
+
+    try {
+      await loginUser(email, password);
+      onLogin(); // Auth listener in App.tsx will handle redirect, but we call this prop for good measure
+    } catch (err: any) {
+      if (err.code === 'auth/invalid-email' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+        setError('Hatalı e-posta veya şifre.');
+      } else {
+        setError('Giriş yapılırken bir hata oluştu: ' + err.message);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -35,13 +47,11 @@ const Login: React.FC<LoginProps> = ({ onLogin, onBack }) => {
         </div>
         
         <form onSubmit={handleSubmit} className="p-8 space-y-6">
-          {/* Demo Credentials Hint */}
           <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-start gap-3 animate-fade-in">
             <Info className="text-blue-500 shrink-0 mt-0.5" size={20} />
             <div className="text-sm text-blue-800">
-              <p className="font-bold mb-1">Demo Giriş Bilgileri:</p>
-              <p>E-posta: <span className="font-mono select-all">admin@egebabyspa.com</span></p>
-              <p>Şifre: <span className="font-mono select-all">admin123</span></p>
+              <p className="font-bold mb-1">Güvenli Giriş:</p>
+              <p>Lütfen yetkili yönetici hesap bilgilerinizi giriniz.</p>
             </div>
           </div>
 
@@ -87,9 +97,10 @@ const Login: React.FC<LoginProps> = ({ onLogin, onBack }) => {
 
           <button
             type="submit"
-            className="w-full bg-brand text-white font-bold py-3.5 rounded-xl hover:bg-brand-dark transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+            disabled={loading}
+            className="w-full bg-brand text-white font-bold py-3.5 rounded-xl hover:bg-brand-dark transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex justify-center items-center gap-2"
           >
-            Giriş Yap
+            {loading ? <Loader2 className="animate-spin" size={20} /> : 'Giriş Yap'}
           </button>
 
           <button

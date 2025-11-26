@@ -41,6 +41,28 @@ export interface BlogPost {
   category: string;
 }
 
+export interface Appointment {
+  id: string; // Changed from number to string for Firebase IDs
+  parent: string;
+  baby: string;
+  service: string;
+  date: string;
+  time: string;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  price: string;
+  phone?: string;
+  email?: string;
+  createdAt?: any; // Firestore timestamp
+}
+
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  date: string;
+}
+
 export enum SectionId {
   HOME = 'home',
   ABOUT = 'about',

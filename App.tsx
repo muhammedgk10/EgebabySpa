@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Services from './components/Services';
@@ -11,6 +12,15 @@ import BookingModal from './components/BookingModal';
 import Login from './components/Login';
 import AdminPanel from './components/AdminPanel';
 import Footer from './components/Footer';
+import { Appointment } from './types';
+import { 
+  subscribeToAppointments, 
+  addAppointmentToFirebase, 
+  updateAppointmentStatusInFirebase, 
+  deleteAppointmentFromFirebase,
+  subscribeToAuth,
+  logoutUser
+} from './services/firebaseService';
 
 type PageView = 'home' | 'login' | 'admin';
 
@@ -18,17 +28,40 @@ function App() {
   const [currentView, setCurrentView] = useState<PageView>('home');
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Subscribe to Authentication State
+  useEffect(() => {
+    const unsubscribe = subscribeToAuth((user) => {
+      setIsAuthenticated(!!user);
+      if (user) {
+        // If user is logged in and was trying to login, show admin
+        if (currentView === 'login') setCurrentView('admin');
+      }
+    });
+    return () => unsubscribe();
+  }, [currentView]);
+
+  // Subscribe to Appointments Data (Real-time)
+  useEffect(() => {
+    const unsubscribe = subscribeToAppointments((data) => {
+      setAppointments(data);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const openBooking = () => setIsBookingOpen(true);
   const closeBooking = () => setIsBookingOpen(false);
 
   const handleLoginSuccess = () => {
-    setIsAuthenticated(true);
+    // Auth state listener will handle the view change
     setCurrentView('admin');
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
+  const handleLogout = async () => {
+    await logoutUser();
     setCurrentView('home');
   };
 
@@ -45,6 +78,36 @@ function App() {
     window.scrollTo(0, 0);
   };
 
+  // Add new appointment (to Firebase)
+  const handleNewAppointment = async (newApp: Omit<Appointment, 'id' | 'status'>) => {
+    try {
+      await addAppointmentToFirebase(newApp);
+      // No need to set state manually, listener updates it
+    } catch (error) {
+      alert("Randevu oluşturulurken bir hata oluştu.");
+    }
+  };
+
+  // Update appointment status (in Firebase)
+  const handleUpdateStatus = async (id: string, status: 'confirmed' | 'cancelled') => {
+    try {
+      await updateAppointmentStatusInFirebase(id, status);
+    } catch (error) {
+      alert("Durum güncellenemedi.");
+    }
+  };
+
+  // Delete appointment (from Firebase)
+  const handleDeleteAppointment = async (id: string) => {
+    if (window.confirm('Bu randevuyu kalıcı olarak silmek istediğinizden emin misiniz?')) {
+      try {
+        await deleteAppointmentFromFirebase(id);
+      } catch (error) {
+        alert("Silme işlemi başarısız.");
+      }
+    }
+  };
+
   // Render Logic
   if (currentView === 'login') {
     return (
@@ -57,9 +120,13 @@ function App() {
 
   if (currentView === 'admin') {
     return isAuthenticated ? (
-      <AdminPanel onLogout={handleLogout} />
+      <AdminPanel 
+        onLogout={handleLogout} 
+        appointments={appointments}
+        onUpdateStatus={handleUpdateStatus}
+        onDeleteAppointment={handleDeleteAppointment}
+      />
     ) : (
-      // Fallback if somehow state gets out of sync
       <Login onLogin={handleLoginSuccess} onBack={navigateToHome} />
     );
   }
@@ -73,7 +140,7 @@ function App() {
       />
       <main className="flex-grow">
         <Hero onOpenBooking={openBooking} />
-        <Services />
+        <Services onOpenBooking={openBooking} />
         <Packages onOpenBooking={openBooking} />
         <Benefits />
         <Blog />
@@ -81,7 +148,11 @@ function App() {
       </main>
       <Footer />
       <ChatWidget />
-      <BookingModal isOpen={isBookingOpen} onClose={closeBooking} />
+      <BookingModal 
+        isOpen={isBookingOpen} 
+        onClose={closeBooking} 
+        onSubmit={handleNewAppointment}
+      />
     </div>
   );
 }

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { SectionId } from '../types';
 import { Calendar, ChevronDown } from 'lucide-react';
@@ -61,11 +62,11 @@ const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
                  {/* Main Image Masked */}
                  <div className="absolute inset-2 overflow-hidden shadow-2xl transition-all duration-500 hover:scale-[1.02]" style={{ borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%' }}>
                     <img 
-                        src="https://images.unsplash.com/photo-1519689680058-324335c77eba?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" 
-                        alt="Happy baby spa" 
+                        src="https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=1000&auto=format&fit=crop" 
+                        alt="Happy baby spa hero" 
                         className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
                  </div>
 
                  {/* Floating badge */}

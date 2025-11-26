@@ -1,8 +1,44 @@
-import React from 'react';
-import { MapPin, Phone, Mail, Instagram, Facebook } from 'lucide-react';
+
+import React, { useState } from 'react';
+import { MapPin, Phone, Mail, Instagram, Facebook, Send, Loader2, CheckCircle } from 'lucide-react';
 import { SectionId } from '../types';
+import { addContactMessage } from '../services/firebaseService';
 
 const Contact: React.FC = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    message: ''
+  });
+  const [status, setStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name || !formData.email || !formData.message) return;
+
+    setStatus('submitting');
+
+    try {
+      await addContactMessage(formData);
+      setStatus('success');
+      setFormData({ name: '', email: '', message: '' });
+      
+      // Reset success message after 5 seconds
+      setTimeout(() => {
+        setStatus('idle');
+      }, 5000);
+    } catch (error) {
+      console.error(error);
+      alert("Mesaj gönderilirken bir hata oluştu.");
+      setStatus('idle');
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
   return (
     <section id={SectionId.CONTACT} className="min-h-screen pt-20 pb-10 bg-gray-50">
       <div className="container mx-auto px-4">
@@ -68,25 +104,79 @@ const Contact: React.FC = () => {
 
           {/* Contact Form / Map */}
           <div className="flex flex-col gap-6">
-             <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 flex-1">
-                <h3 className="text-2xl font-bold text-gray-800 mb-6">Mesaj Gönderin</h3>
-                <form className="space-y-4">
-                   <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-1">Adınız Soyadınız</label>
-                      <input type="text" className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand focus:border-transparent outline-none" placeholder="Adınız" />
-                   </div>
-                   <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-1">E-posta Adresiniz</label>
-                      <input type="email" className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand focus:border-transparent outline-none" placeholder="ornek@email.com" />
-                   </div>
-                   <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-1">Mesajınız</label>
-                      <textarea rows={4} className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand focus:border-transparent outline-none" placeholder="Mesajınızı buraya yazın..."></textarea>
-                   </div>
-                   <button className="w-full py-4 bg-brand text-white font-bold rounded-xl hover:bg-brand-dark transition-colors shadow-lg">
-                      Gönder
-                   </button>
-                </form>
+             <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 flex-1 relative overflow-hidden">
+                {status === 'success' ? (
+                  <div className="absolute inset-0 bg-white z-10 flex flex-col items-center justify-center p-8 text-center animate-fade-in">
+                    <div className="w-20 h-20 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-6">
+                      <CheckCircle size={40} />
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-800 mb-2">Mesajınız Gönderildi!</h3>
+                    <p className="text-gray-600">En kısa sürede size dönüş yapacağız. Teşekkür ederiz.</p>
+                    <button 
+                      onClick={() => setStatus('idle')}
+                      className="mt-8 text-brand font-bold hover:underline"
+                    >
+                      Yeni Mesaj Gönder
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <h3 className="text-2xl font-bold text-gray-800 mb-6">Mesaj Gönderin</h3>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                      <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-1">Adınız Soyadınız</label>
+                          <input 
+                            type="text" 
+                            name="name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            required
+                            className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all" 
+                            placeholder="Adınız" 
+                          />
+                      </div>
+                      <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-1">E-posta Adresiniz</label>
+                          <input 
+                            type="email" 
+                            name="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            required
+                            className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all" 
+                            placeholder="ornek@email.com" 
+                          />
+                      </div>
+                      <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-1">Mesajınız</label>
+                          <textarea 
+                            rows={4} 
+                            name="message"
+                            value={formData.message}
+                            onChange={handleChange}
+                            required
+                            className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all resize-none" 
+                            placeholder="Mesajınızı buraya yazın..."
+                          ></textarea>
+                      </div>
+                      <button 
+                        type="submit"
+                        disabled={status === 'submitting'}
+                        className="w-full py-4 bg-brand text-white font-bold rounded-xl hover:bg-brand-dark disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors shadow-lg flex items-center justify-center gap-2"
+                      >
+                        {status === 'submitting' ? (
+                          <>
+                            <Loader2 size={20} className="animate-spin" /> Gönderiliyor...
+                          </>
+                        ) : (
+                          <>
+                            Gönder <Send size={18} />
+                          </>
+                        )}
+                      </button>
+                    </form>
+                  </>
+                )}
              </div>
           </div>
         </div>

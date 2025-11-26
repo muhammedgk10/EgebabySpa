@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
 
 const API_KEY = process.env.API_KEY || '';
@@ -40,6 +41,77 @@ export const sendMessageToGemini = async (chat: Chat, message: string): Promise<
     return response.text || "Üzgünüm, şu an cevap veremiyorum.";
   } catch (error) {
     console.error("Gemini API Error:", error);
+    throw error;
+  }
+};
+
+export const generateImage = async (prompt: string, size: '1K' | '2K' | '4K'): Promise<string | null> => {
+  // Create a new instance to ensure we use the latest selected API Key if available in the environment
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
+  try {
+    const response: GenerateContentResponse = await ai.models.generateContent({
+      model: 'gemini-3-pro-image-preview',
+      contents: {
+        parts: [{ text: prompt }],
+      },
+      config: {
+        imageConfig: {
+          aspectRatio: "1:1",
+          imageSize: size
+        }
+      }
+    });
+
+    // Find the image part in the response
+    if (response.candidates?.[0]?.content?.parts) {
+      for (const part of response.candidates[0].content.parts) {
+        if (part.inlineData) {
+          return `data:image/png;base64,${part.inlineData.data}`;
+        }
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error("Gemini Image Gen Error:", error);
+    throw error;
+  }
+};
+
+export const editImage = async (imageBase64: string, mimeType: string, prompt: string): Promise<string | null> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
+  try {
+    // Ensure base64 string is clean (remove data URL prefix if present)
+    const data = imageBase64.includes('base64,') ? imageBase64.split('base64,')[1] : imageBase64;
+
+    const response: GenerateContentResponse = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-image',
+      contents: {
+        parts: [
+          {
+            inlineData: {
+              data: data,
+              mimeType: mimeType,
+            },
+          },
+          {
+            text: prompt,
+          },
+        ],
+      },
+    });
+
+    if (response.candidates?.[0]?.content?.parts) {
+      for (const part of response.candidates[0].content.parts) {
+        if (part.inlineData) {
+          return `data:image/png;base64,${part.inlineData.data}`;
+        }
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error("Gemini Image Edit Error:", error);
     throw error;
   }
 };

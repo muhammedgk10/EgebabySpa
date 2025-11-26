@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Instagram, Facebook, MapPin, Phone, Mail } from 'lucide-react';
 import { SectionId } from '../types';
@@ -48,7 +49,7 @@ const Footer: React.FC = () => {
              <div className="space-y-3 text-sm text-gray-400">
                <div className="flex items-start gap-3">
                  <MapPin size={16} className="text-brand mt-1" />
-                 <span>Alsancak, İzmir</span>
+                 <span>Konak, İzmir</span>
                </div>
                <div className="flex items-center gap-3">
                  <Phone size={16} className="text-brand" />

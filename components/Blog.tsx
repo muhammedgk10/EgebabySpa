@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BlogPost, SectionId } from '../types';
 import { ArrowRight, Calendar, User } from 'lucide-react';
@@ -10,7 +11,7 @@ const Blog: React.FC = () => {
       excerpt: 'Suyun kaldırma kuvveti bebeğinizin kaslarını nasıl geliştirir? İşte bilimsel gerçekler ve uzman görüşleri.',
       date: '12 Mart 2024',
       category: 'Sağlık',
-      imageUrl: 'https://images.unsplash.com/photo-1574271143515-5cddf8da160e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80'
+      imageUrl: 'https://images.unsplash.com/photo-1575463769930-4e3a473f32c3?q=80&w=600&auto=format&fit=crop'
     },
     {
       id: '2',
@@ -18,7 +19,7 @@ const Blog: React.FC = () => {
       excerpt: 'Gaz sancısı çeken bebekler için evde uygulayabileceğiniz basit ama etkili masaj hareketlerini öğrenin.',
       date: '08 Mart 2024',
       category: 'Ebeveyn Rehberi',
-      imageUrl: 'https://images.unsplash.com/photo-1516627145497-ae6968895b74?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80'
+      imageUrl: 'https://images.unsplash.com/photo-1616091093409-773a4b6c3116?q=80&w=600&auto=format&fit=crop'
     },
     {
       id: '3',
@@ -26,7 +27,7 @@ const Blog: React.FC = () => {
       excerpt: 'İlk defa spa merkezine gelecek ebeveynler için hazırladığımız kapsamlı rehber. Çantanızda neler olmalı?',
       date: '01 Mart 2024',
       category: 'İpuçları',
-      imageUrl: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80'
+      imageUrl: 'https://images.unsplash.com/photo-1581561066738-947702581639?q=80&w=600&auto=format&fit=crop'
     }
   ];
 
