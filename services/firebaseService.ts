@@ -8,12 +8,16 @@ import {
   onSnapshot, 
   query, 
   orderBy,
-  serverTimestamp
+  serverTimestamp,
+  getDocs
 } from 'firebase/firestore';
 import { 
   signInWithEmailAndPassword, 
   signOut, 
-  onAuthStateChanged 
+  onAuthStateChanged,
+  updatePassword,
+  updateProfile,
+  updateEmail
 } from 'firebase/auth';
 import { db, auth, isFirebaseReady } from '../firebaseConfig';
 import { Appointment, ContactMessage } from '../types';
@@ -21,6 +25,7 @@ import { Appointment, ContactMessage } from '../types';
 export interface User {
   uid: string;
   email: string | null;
+  displayName?: string | null;
 }
 
 // --- LOCAL FALLBACK DATA ---
@@ -203,8 +208,58 @@ export const addContactMessage = async (data: { name: string; email: string; mes
   notifyContactListeners();
 };
 
+export const getCustomers = async () => {
+  if (!isFirebaseReady || !db) return [];
 
-// --- AUTHENTICATION ---
+  try {
+    // Fetch both collections to aggregate unique customers
+    const appointmentsSnapshot = await getDocs(collection(db, 'appointments'));
+    const contactsSnapshot = await getDocs(collection(db, 'contacts'));
+
+    const appointments = appointmentsSnapshot.docs.map(doc => doc.data() as Appointment);
+    const contacts = contactsSnapshot.docs.map(doc => doc.data() as ContactMessage);
+
+    const customerMap = new Map<string, any>();
+
+    // Process appointments
+    appointments.forEach(app => {
+      const key = app.email || app.phone || app.parent;
+      if (!customerMap.has(key)) {
+        customerMap.set(key, {
+          id: key,
+          name: app.parent,
+          email: app.email,
+          phone: app.phone,
+          type: 'Randevu',
+          lastDate: app.date
+        });
+      }
+    });
+
+    // Process contacts
+    contacts.forEach(contact => {
+      const key = contact.email || contact.name;
+      if (!customerMap.has(key)) {
+        customerMap.set(key, {
+          id: key,
+          name: contact.name,
+          email: contact.email,
+          phone: '',
+          type: 'İletişim',
+          lastDate: contact.date
+        });
+      }
+    });
+
+    return Array.from(customerMap.values());
+  } catch (error) {
+    console.error("Error fetching customers:", error);
+    return [];
+  }
+};
+
+
+// --- AUTHENTICATION & SETTINGS ---
 
 export const loginUser = async (email: string, pass: string) => {
   if (isFirebaseReady && auth) {
@@ -225,7 +280,7 @@ export const loginUser = async (email: string, pass: string) => {
     // Sadece demo amaçlı fallback (Firebase Auth çalışmıyorsa)
     if (email === 'admin@egebabyspa.com' && pass === '123456') {
       console.warn("⚠️ Demo modu ile giriş yapılıyor. Gerçek Auth kullanılmıyor.");
-      mockUser = { email, uid: 'mock-admin-id' };
+      mockUser = { email, uid: 'mock-admin-id', displayName: 'Demo Admin' };
       notifyAuthListeners();
     } else {
       throw { code: 'auth/invalid-credential', message: 'Demo Modu: admin@egebabyspa.com / 123456' };
@@ -251,14 +306,16 @@ export const subscribeToAuth = (callback: (user: User | null) => void) => {
   if (isFirebaseReady && auth) {
     unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        callback({ uid: user.uid, email: user.email });
+        callback({ 
+          uid: user.uid, 
+          email: user.email,
+          displayName: user.displayName
+        });
       } else {
-        // Firebase'den çıkış yapıldıysa veya kullanıcı yoksa, mock user'ı kontrol et
         callback(mockUser);
       }
     });
   } else {
-    // Firebase yoksa sadece mock user durumunu bildir
     addListener(authListeners, callback);
     callback(mockUser);
   }
@@ -267,4 +324,33 @@ export const subscribeToAuth = (callback: (user: User | null) => void) => {
     if (unsubscribe) unsubscribe();
     authListeners = authListeners.filter(l => l !== callback);
   };
+};
+
+export const updateAdminProfile = async (data: { displayName?: string, email?: string }) => {
+  if (isFirebaseReady && auth && auth.currentUser) {
+    if (data.email && data.email !== auth.currentUser.email) {
+      await updateEmail(auth.currentUser, data.email);
+    }
+    if (data.displayName && data.displayName !== auth.currentUser.displayName) {
+      await updateProfile(auth.currentUser, { displayName: data.displayName });
+    }
+  } else {
+    // Demo mode
+    if (mockUser) {
+      if (data.email) mockUser.email = data.email;
+      if (data.displayName) mockUser.displayName = data.displayName;
+      notifyAuthListeners();
+    }
+    // Simulate delay
+    await new Promise(resolve => setTimeout(resolve, 800));
+  }
+};
+
+export const updateAdminPassword = async (newPassword: string) => {
+  if (isFirebaseReady && auth && auth.currentUser) {
+    await updatePassword(auth.currentUser, newPassword);
+  } else {
+    // Demo mode simulation
+    await new Promise(resolve => setTimeout(resolve, 800));
+  }
 };
