@@ -8,13 +8,12 @@ import {
   onSnapshot, 
   query, 
   orderBy,
-  getDocs
+  serverTimestamp
 } from 'firebase/firestore';
 import { 
   signInWithEmailAndPassword, 
   signOut, 
-  onAuthStateChanged,
-  User as FirebaseUser 
+  onAuthStateChanged 
 } from 'firebase/auth';
 import { db, auth, isFirebaseReady } from '../firebaseConfig';
 import { Appointment, ContactMessage } from '../types';
@@ -24,44 +23,61 @@ export interface User {
   email: string | null;
 }
 
-// --- MOCK DATA (Fallback only) ---
-let mockAppointments: Appointment[] = [
-  { id: '1', parent: 'Ayşe Yılmaz', baby: 'Can (6 Ay)', service: 'Rahatla & Büyü Paketi', date: '2024-03-14', time: '10:30', status: 'pending', price: '₺2.800' },
-  { id: '2', parent: 'Mehmet Demir', baby: 'Elif (4 Ay)', service: 'İlk Dokunuş', date: '2024-03-14', time: '12:00', status: 'confirmed', price: '₺750' },
-];
+// --- LOCAL FALLBACK DATA ---
+// Veritabanı bağlantısı olmadığında veya hata durumunda kullanılacak boş listeler.
+// Gerçek bağlantı kurulduğunda bu listeler yerine veritabanı verileri kullanılır.
+let localAppointments: Appointment[] = [];
+let localContacts: ContactMessage[] = [];
 
-let mockContacts: ContactMessage[] = [
-  { id: '1', name: 'Zeynep Kaya', email: 'zeynep@example.com', message: 'Merhaba, ikiz bebekler için indiriminiz var mı?', date: '2024-03-10' }
-];
-
+let mockUser: User | null = null;
 let appointmentListeners: ((apps: Appointment[]) => void)[] = [];
 let contactListeners: ((msgs: ContactMessage[]) => void)[] = [];
-let mockUser: User | null = null;
 let authListeners: ((user: User | null) => void)[] = [];
 
-const notifyAppointmentListeners = () => appointmentListeners.forEach(l => l([...mockAppointments]));
-const notifyContactListeners = () => contactListeners.forEach(l => l([...mockContacts]));
-const notifyAuthListeners = () => authListeners.forEach(l => l(mockUser));
+// Listener Yönetimi
+const addListener = (listeners: any[], callback: any) => {
+  if (!listeners.includes(callback)) {
+    listeners.push(callback);
+  }
+};
 
+const notifyAppointmentListeners = () => appointmentListeners.forEach(l => l([...localAppointments]));
+const notifyContactListeners = () => contactListeners.forEach(l => l([...localContacts]));
+const notifyAuthListeners = () => authListeners.forEach(l => l(mockUser));
 
 // --- APPOINTMENTS ---
 
 export const subscribeToAppointments = (callback: (appointments: Appointment[]) => void) => {
   if (isFirebaseReady && db) {
-    const q = query(collection(db, 'appointments'), orderBy('createdAt', 'desc'));
-    return onSnapshot(q, (snapshot) => {
-      const appointments = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Appointment[];
-      callback(appointments);
-    }, (err) => {
-      console.error("Firestore Error:", err);
-      callback([...mockAppointments]); // Fallback on permission error
-    });
+    try {
+      // Oluşturulma tarihine göre tersten sırala (En yeni en üstte)
+      const q = query(collection(db, 'appointments'), orderBy('createdAt', 'desc'));
+      
+      return onSnapshot(q, (snapshot) => {
+        const appointments = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Appointment[];
+        callback(appointments);
+      }, (error) => {
+        console.warn("Firestore Appointment Read Error:", error.message);
+        // Hata durumunda (örn: veritabanı yoksa) boş/lokal listeyi döndür
+        if (error.code === 'permission-denied' || error.code === 'not-found') {
+             console.info("ℹ️ Lütfen Firebase Console'da Firestore Database'i oluşturduğunuzdan emin olun.");
+        }
+        callback([...localAppointments]);
+        addListener(appointmentListeners, callback);
+      });
+    } catch (e) {
+      console.error("Firestore init error:", e);
+      addListener(appointmentListeners, callback);
+      callback([...localAppointments]);
+      return () => { appointmentListeners = appointmentListeners.filter(l => l !== callback); };
+    }
   } else {
-    appointmentListeners.push(callback);
-    callback([...mockAppointments]);
+    // Firebase hazır değilse lokal modu kullan
+    addListener(appointmentListeners, callback);
+    callback([...localAppointments]);
     return () => {
       appointmentListeners = appointmentListeners.filter(l => l !== callback);
     };
@@ -72,40 +88,60 @@ export const addAppointmentToFirebase = async (appointmentData: Omit<Appointment
   const newAppBase = {
     ...appointmentData,
     status: 'pending' as const,
-    createdAt: new Date().toISOString()
+    createdAt: serverTimestamp() // Sunucu zamanını kullan
   };
 
-  if (isFirebaseReady && db) {
-    await addDoc(collection(db, 'appointments'), newAppBase);
-  } else {
-    const newApp: Appointment = {
-      ...newAppBase,
-      id: Date.now().toString(),
-    };
-    mockAppointments = [newApp, ...mockAppointments];
-    notifyAppointmentListeners();
+  try {
+    if (isFirebaseReady && db) {
+      await addDoc(collection(db, 'appointments'), newAppBase);
+      return;
+    }
+  } catch (error) {
+    console.error("Firebase'e kayıt eklenemedi:", error);
+    throw error;
   }
+
+  // Fallback (Sadece Firebase çalışmıyorsa)
+  const newApp: Appointment = {
+    ...newAppBase,
+    id: Date.now().toString(),
+    createdAt: new Date().toISOString()
+  };
+  localAppointments = [newApp, ...localAppointments];
+  notifyAppointmentListeners();
 };
 
 export const updateAppointmentStatusInFirebase = async (id: string, status: 'confirmed' | 'cancelled') => {
-  if (isFirebaseReady && db) {
-    const docRef = doc(db, 'appointments', id);
-    await updateDoc(docRef, { status });
-  } else {
-    mockAppointments = mockAppointments.map(app => 
-      app.id === id ? { ...app, status } : app
-    );
-    notifyAppointmentListeners();
+  try {
+    if (isFirebaseReady && db) {
+      const docRef = doc(db, 'appointments', id);
+      await updateDoc(docRef, { status });
+      return;
+    }
+  } catch (error) {
+    console.error("Firebase güncelleme hatası:", error);
   }
+
+  // Fallback
+  localAppointments = localAppointments.map(app => 
+    app.id === id ? { ...app, status } : app
+  );
+  notifyAppointmentListeners();
 };
 
 export const deleteAppointmentFromFirebase = async (id: string) => {
-  if (isFirebaseReady && db) {
-    await deleteDoc(doc(db, 'appointments', id));
-  } else {
-    mockAppointments = mockAppointments.filter(app => app.id !== id);
-    notifyAppointmentListeners();
+  try {
+    if (isFirebaseReady && db) {
+      await deleteDoc(doc(db, 'appointments', id));
+      return;
+    }
+  } catch (error) {
+    console.error("Firebase silme hatası:", error);
   }
+
+  // Fallback
+  localAppointments = localAppointments.filter(app => app.id !== id);
+  notifyAppointmentListeners();
 };
 
 
@@ -113,17 +149,27 @@ export const deleteAppointmentFromFirebase = async (id: string) => {
 
 export const subscribeToContacts = (callback: (messages: ContactMessage[]) => void) => {
   if (isFirebaseReady && db) {
-    const q = query(collection(db, 'contacts'), orderBy('date', 'desc'));
-    return onSnapshot(q, (snapshot) => {
-      const messages = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as ContactMessage[];
-      callback(messages);
-    });
+    try {
+      const q = query(collection(db, 'contacts'), orderBy('date', 'desc'));
+      return onSnapshot(q, (snapshot) => {
+        const messages = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as ContactMessage[];
+        callback(messages);
+      }, (error) => {
+        console.warn("Firestore Contacts Read Error:", error.message);
+        callback([...localContacts]);
+        addListener(contactListeners, callback);
+      });
+    } catch (e) {
+        addListener(contactListeners, callback);
+        callback([...localContacts]);
+        return () => { contactListeners = contactListeners.filter(l => l !== callback); };
+    }
   } else {
-    contactListeners.push(callback);
-    callback([...mockContacts]);
+    addListener(contactListeners, callback);
+    callback([...localContacts]);
     return () => {
       contactListeners = contactListeners.filter(l => l !== callback);
     };
@@ -133,19 +179,28 @@ export const subscribeToContacts = (callback: (messages: ContactMessage[]) => vo
 export const addContactMessage = async (data: { name: string; email: string; message: string }) => {
   const messageData = {
     ...data,
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0],
+    createdAt: serverTimestamp()
   };
 
-  if (isFirebaseReady && db) {
-    await addDoc(collection(db, 'contacts'), messageData);
-  } else {
-    const newMessage: ContactMessage = {
-      id: Date.now().toString(),
-      ...messageData
-    };
-    mockContacts = [newMessage, ...mockContacts];
-    notifyContactListeners();
+  try {
+    if (isFirebaseReady && db) {
+      await addDoc(collection(db, 'contacts'), messageData);
+      return;
+    }
+  } catch (error) {
+    console.error("Firebase mesaj gönderme hatası:", error);
+    throw error;
   }
+
+  // Fallback
+  const newMessage: ContactMessage = {
+    id: Date.now().toString(),
+    ...data,
+    date: messageData.date
+  };
+  localContacts = [newMessage, ...localContacts];
+  notifyContactListeners();
 };
 
 
@@ -153,9 +208,23 @@ export const addContactMessage = async (data: { name: string; email: string; mes
 
 export const loginUser = async (email: string, pass: string) => {
   if (isFirebaseReady && auth) {
-    await signInWithEmailAndPassword(auth, email, pass);
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+      return;
+    } catch (error: any) {
+      console.error("Login Error:", error.code, error.message);
+      
+      // Auth sağlayıcısı etkin değilse (örn: Email/Password kapalıysa)
+      if (error.code === 'auth/operation-not-allowed') {
+         alert("Firebase Console'da Email/Password giriş yöntemi etkinleştirilmemiş.");
+      }
+      
+      throw error;
+    }
   } else {
+    // Sadece demo amaçlı fallback (Firebase Auth çalışmıyorsa)
     if (email === 'admin@egebabyspa.com' && pass === '123456') {
+      console.warn("⚠️ Demo modu ile giriş yapılıyor. Gerçek Auth kullanılmıyor.");
       mockUser = { email, uid: 'mock-admin-id' };
       notifyAuthListeners();
     } else {
@@ -165,28 +234,37 @@ export const loginUser = async (email: string, pass: string) => {
 };
 
 export const logoutUser = async () => {
-  if (isFirebaseReady && auth) {
-    await signOut(auth);
-  } else {
-    mockUser = null;
-    notifyAuthListeners();
+  try {
+    if (isFirebaseReady && auth) {
+      await signOut(auth);
+    }
+  } catch (e) {
+    console.error("Logout error:", e);
   }
+  mockUser = null;
+  notifyAuthListeners();
 };
 
 export const subscribeToAuth = (callback: (user: User | null) => void) => {
+  let unsubscribe: () => void = () => {};
+
   if (isFirebaseReady && auth) {
-    return onAuthStateChanged(auth, (user) => {
+    unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         callback({ uid: user.uid, email: user.email });
       } else {
-        callback(null);
+        // Firebase'den çıkış yapıldıysa veya kullanıcı yoksa, mock user'ı kontrol et
+        callback(mockUser);
       }
     });
   } else {
-    authListeners.push(callback);
+    // Firebase yoksa sadece mock user durumunu bildir
+    addListener(authListeners, callback);
     callback(mockUser);
-    return () => {
-      authListeners = authListeners.filter(l => l !== callback);
-    };
   }
+
+  return () => {
+    if (unsubscribe) unsubscribe();
+    authListeners = authListeners.filter(l => l !== callback);
+  };
 };
