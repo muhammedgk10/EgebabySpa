@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Image as ImageIcon, Download, Loader2, Sparkles, AlertCircle, Wand2, Upload, X } from 'lucide-react';
+import { Image as ImageIcon, Download, Loader2, Sparkles, AlertCircle, Wand2, Upload, X, Key } from 'lucide-react';
 import { generateImage, editImage } from '../services/geminiService';
 
 const ImageGenerator: React.FC = () => {
@@ -34,9 +34,14 @@ const ImageGenerator: React.FC = () => {
   const handleSelectKey = async () => {
     const aistudio = (window as any).aistudio;
     if (aistudio) {
-      await aistudio.openSelectKey();
-      const has = await aistudio.hasSelectedApiKey();
-      setHasKey(has);
+      try {
+        await aistudio.openSelectKey();
+        const has = await aistudio.hasSelectedApiKey();
+        setHasKey(has);
+        if (has) setError(null);
+      } catch (e) {
+        console.error("Key selection error:", e);
+      }
     }
   };
 
@@ -94,11 +99,12 @@ const ImageGenerator: React.FC = () => {
         setError('İşlem başarısız oldu. Lütfen tekrar deneyin.');
       }
     } catch (err: any) {
-        if (err.message?.includes('Requested entity was not found')) {
+        const msg = err.message || '';
+        if (msg.includes('Requested entity was not found') || msg.includes('403') || msg.includes('API key')) {
             setHasKey(false);
-            setError('API anahtarı hatası veya süresi dolmuş. Lütfen anahtarı tekrar seçin.');
+            setError('API anahtarı geçersiz veya süresi dolmuş. Lütfen yeni bir anahtar seçin.');
         } else {
-            setError('Bir hata oluştu: ' + (err.message || 'Bilinmeyen hata'));
+            setError('Bir hata oluştu: ' + (msg || 'Bilinmeyen hata'));
         }
     } finally {
       setLoading(false);
@@ -112,9 +118,18 @@ const ImageGenerator: React.FC = () => {
           <Sparkles size={40} />
         </div>
         <h3 className="text-2xl font-bold text-gray-800 mb-3">Yapay Zeka Görsel Stüdyosu</h3>
-        <p className="text-gray-500 text-center max-w-md mb-8 text-lg">
-          Nano Banana Pro ve Flash Image modelleri ile çalışmak için API anahtarınızı seçin.
-        </p>
+        
+        {error ? (
+            <div className="mb-6 p-3 bg-red-50 text-red-600 text-sm rounded-lg flex items-center gap-2 max-w-md border border-red-100">
+                <AlertCircle size={16} />
+                {error}
+            </div>
+        ) : (
+            <p className="text-gray-500 text-center max-w-md mb-8 text-lg">
+            Nano Banana Pro ve Flash Image modelleri ile çalışmak için API anahtarınızı seçin.
+            </p>
+        )}
+        
         <button 
           onClick={handleSelectKey}
           className="px-8 py-4 bg-brand text-white font-bold rounded-xl hover:bg-brand-dark transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1 text-lg"
@@ -162,7 +177,15 @@ const ImageGenerator: React.FC = () => {
            </button>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex-1 flex flex-col overflow-y-auto">
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex-1 flex flex-col overflow-y-auto relative">
+          <button 
+            onClick={handleSelectKey}
+            className="absolute top-6 right-6 p-2 text-slate-400 hover:text-brand hover:bg-brand/10 rounded-full transition-colors z-10"
+            title="API Anahtarını Değiştir"
+          >
+            <Key size={18} />
+          </button>
+
           <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
             {mode === 'generate' ? <Sparkles size={20} className="text-brand" /> : <Wand2 size={20} className="text-brand" />}
             {mode === 'generate' ? 'Oluşturma Ayarları' : 'Düzenleme Ayarları'}
@@ -243,9 +266,11 @@ const ImageGenerator: React.FC = () => {
             )}
 
             {error && (
-                <div className="p-4 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100 flex items-start gap-2 animate-shake">
-                    <AlertCircle size={16} className="mt-0.5 shrink-0" />
-                    <span>{error}</span>
+                <div className="p-4 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100 flex flex-col gap-2 animate-shake">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                      <span>{error}</span>
+                    </div>
                 </div>
             )}
           </div>

@@ -14,28 +14,28 @@ const Services: React.FC<ServicesProps> = ({ onOpenBooking }) => {
       title: 'Hidroterapi',
       description: 'Özel olarak tasarlanmış, ozon ile temizlenen jakuzilerde, bebeklerin suyun kaldırma kuvvetiyle özgürce hareket etmesini sağlıyoruz.',
       iconName: 'Waves',
-      imageUrl: 'https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=800&auto=format&fit=crop'
+      imageUrl: 'https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=800&fm=webp&fit=crop'
     },
     {
       id: 'massage',
       title: 'Bebek Masajı',
       description: 'Uzman terapistlerimiz eşliğinde yapılan masaj ile gaz sancılarını, kolik ağrılarını hafifletiyor ve uyku kalitesini artırıyoruz.',
       iconName: 'HeartHandshake',
-      imageUrl: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=800&auto=format&fit=crop'
+      imageUrl: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=800&fm=webp&fit=crop'
     },
     {
       id: 'floating',
       title: 'Floating',
       description: 'Anti-alerjik boyun simidi ile güvenli bir şekilde suyun üzerinde süzülen bebeklerde denge ve koordinasyon gelişir.',
       iconName: 'Bath',
-      imageUrl: 'https://images.unsplash.com/photo-1571210862729-78a52d3779a2?q=80&w=800&auto=format&fit=crop'
+      imageUrl: 'https://images.unsplash.com/photo-1571210862729-78a52d3779a2?q=80&w=800&fm=webp&fit=crop'
     },
     {
       id: 'mother-baby',
       title: 'Anne & Bebek',
       description: 'Anne ile bebeğin bağını güçlendiren, rahatlatıcı ve keyifli özel seanslarımız ile stresten uzaklaşın.',
       iconName: 'Award',
-      imageUrl: 'https://images.unsplash.com/photo-1627930869687-0b4458514d02?q=80&w=800&auto=format&fit=crop'
+      imageUrl: 'https://images.unsplash.com/photo-1627930869687-0b4458514d02?q=80&w=800&fm=webp&fit=crop'
     }
   ];
 
@@ -71,7 +71,7 @@ const Services: React.FC<ServicesProps> = ({ onOpenBooking }) => {
                   alt={service.title} 
                   className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=800&auto=format&fit=crop';
+                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=800&fm=webp&fit=crop';
                   }}
                 />
                 <div className="absolute top-4 right-4 bg-white p-3 rounded-full text-brand shadow-lg z-20 group-hover:rotate-12 transition-transform">
