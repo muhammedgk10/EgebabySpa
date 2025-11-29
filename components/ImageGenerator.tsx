@@ -1,14 +1,16 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Image as ImageIcon, Download, Loader2, Sparkles, AlertCircle, Wand2, Upload, X, Key } from 'lucide-react';
+import { Image as ImageIcon, Download, Loader2, Sparkles, AlertCircle, Wand2, Upload, X, Key, Grid, Check } from 'lucide-react';
 import { generateImage, editImage } from '../services/geminiService';
 
 const ImageGenerator: React.FC = () => {
   const [mode, setMode] = useState<'generate' | 'edit'>('generate');
   const [prompt, setPrompt] = useState('');
   const [size, setSize] = useState<'1K' | '2K' | '4K'>('1K');
+  const [variationCount, setVariationCount] = useState<1 | 2 | 3 | 4>(1);
   const [loading, setLoading] = useState(false);
-  const [image, setImage] = useState<string | null>(null);
+  const [images, setImages] = useState<string[]>([]);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const [hasKey, setHasKey] = useState(false);
   
@@ -73,13 +75,28 @@ const ImageGenerator: React.FC = () => {
     
     setLoading(true);
     setError(null);
-    setImage(null);
+    setImages([]);
+    setSelectedImageIndex(0);
 
     try {
-      let result: string | null = null;
-
       if (mode === 'generate') {
-        result = await generateImage(prompt, size);
+        const results: string[] = [];
+        // Generate images sequentially to respect potential rate limits and provide progress
+        for (let i = 0; i < variationCount; i++) {
+          const result = await generateImage(prompt, size);
+          if (result) {
+            results.push(result);
+            // Update state incrementally to show progress if desired, 
+            // or just wait for all. Here we update all at once for simplicity in this loop,
+            // but in a real app you might want to stream them.
+          }
+        }
+        
+        if (results.length > 0) {
+          setImages(results);
+        } else {
+          setError('Görsel oluşturulamadı. Lütfen tekrar deneyin.');
+        }
       } else {
         if (!sourceImage) return;
         // Extract mime type from base64 string
@@ -90,13 +107,13 @@ const ImageGenerator: React.FC = () => {
            return;
         }
         const mimeType = matches[1];
-        result = await editImage(sourceImage, mimeType, prompt);
-      }
-
-      if (result) {
-        setImage(result);
-      } else {
-        setError('İşlem başarısız oldu. Lütfen tekrar deneyin.');
+        const result = await editImage(sourceImage, mimeType, prompt);
+        
+        if (result) {
+          setImages([result]);
+        } else {
+          setError('Düzenleme başarısız oldu. Lütfen tekrar deneyin.');
+        }
       }
     } catch (err: any) {
         const msg = err.message || '';
@@ -243,26 +260,47 @@ const ImageGenerator: React.FC = () => {
               />
             </div>
 
-            {/* Generate Mode: Size Selector */}
+            {/* Generate Mode Options */}
             {mode === 'generate' && (
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Çözünürlük</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(['1K', '2K', '4K'] as const).map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => setSize(s)}
-                      className={`py-3 rounded-xl text-sm font-bold transition-all border ${
-                        size === s 
-                          ? 'bg-brand text-white border-brand shadow-md' 
-                          : 'bg-gray-50 text-gray-600 border-gray-100 hover:bg-gray-100'
-                      }`}
-                    >
-                      {s}
-                    </button>
-                  ))}
+              <>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Çözünürlük</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(['1K', '2K', '4K'] as const).map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => setSize(s)}
+                        className={`py-3 rounded-xl text-sm font-bold transition-all border ${
+                          size === s 
+                            ? 'bg-brand text-white border-brand shadow-md' 
+                            : 'bg-gray-50 text-gray-600 border-gray-100 hover:bg-gray-100'
+                        }`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Varyasyon Sayısı</label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {([1, 2, 3, 4] as const).map((n) => (
+                      <button
+                        key={n}
+                        onClick={() => setVariationCount(n)}
+                        className={`py-2 rounded-xl text-sm font-bold transition-all border ${
+                          variationCount === n 
+                            ? 'bg-brand text-white border-brand shadow-md' 
+                            : 'bg-gray-50 text-gray-600 border-gray-100 hover:bg-gray-100'
+                        }`}
+                      >
+                        {n}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
             )}
 
             {error && (
@@ -288,17 +326,18 @@ const ImageGenerator: React.FC = () => {
         </div>
       </div>
 
-      {/* Preview */}
-      <div className="lg:col-span-2 h-full">
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 h-full p-6 flex flex-col relative overflow-hidden">
+      {/* Preview Area */}
+      <div className="lg:col-span-2 h-full flex flex-col gap-4">
+        {/* Main Preview */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 flex-1 p-6 flex flex-col relative overflow-hidden min-h-[300px]">
            <div className="flex justify-between items-center mb-6 z-10">
               <h3 className="font-bold text-gray-800 flex items-center gap-2">
                 <ImageIcon size={20} className="text-gray-400" />
-                {image ? 'Sonuç' : 'Önizleme'}
+                {images.length > 0 ? 'Sonuç' : 'Önizleme'}
               </h3>
-              {image && (
+              {images.length > 0 && (
                   <a 
-                    href={image} 
+                    href={images[selectedImageIndex]} 
                     download={`ege-baby-ai-${mode}-${Date.now()}.png`}
                     className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-brand hover:text-white text-gray-700 rounded-lg text-sm font-bold transition-colors"
                   >
@@ -313,11 +352,13 @@ const ImageGenerator: React.FC = () => {
                     <div className="w-20 h-20 border-4 border-brand/30 border-t-brand rounded-full animate-spin mx-auto mb-6"></div>
                     <p className="text-gray-800 font-bold text-lg animate-pulse">Sihir yapılıyor...</p>
                     <p className="text-sm text-gray-500 mt-2">
-                      {mode === 'generate' ? 'Nano Banana Pro görselinizi hazırlıyor' : 'Flash Image görselinizi düzenliyor'}
+                      {mode === 'generate' 
+                        ? `Nano Banana Pro görsellerinizi hazırlıyor (${variationCount} adet)...` 
+                        : 'Flash Image görselinizi düzenliyor'}
                     </p>
                  </div>
-              ) : image ? (
-                 <img src={image} alt="Generated AI" className="w-full h-full object-contain shadow-2xl" />
+              ) : images.length > 0 ? (
+                 <img src={images[selectedImageIndex]} alt="Generated AI" className="w-full h-full object-contain shadow-2xl" />
               ) : (
                  <div className="text-center text-gray-400 z-10">
                     <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
@@ -338,6 +379,35 @@ const ImageGenerator: React.FC = () => {
               <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#26A69A 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
            </div>
         </div>
+
+        {/* Variation Grid (Only show if multiple images generated) */}
+        {images.length > 1 && (
+          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-4">
+             <div className="flex items-center gap-2 mb-3 text-sm font-bold text-gray-600">
+                <Grid size={16} /> Varyasyonlar
+             </div>
+             <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                {images.map((img, idx) => (
+                  <div 
+                    key={idx}
+                    onClick={() => setSelectedImageIndex(idx)}
+                    className={`relative w-24 h-24 rounded-xl overflow-hidden cursor-pointer transition-all shrink-0 ${
+                      selectedImageIndex === idx 
+                        ? 'ring-4 ring-brand ring-offset-2 scale-105' 
+                        : 'opacity-70 hover:opacity-100 hover:scale-105'
+                    }`}
+                  >
+                    <img src={img} alt={`Variation ${idx + 1}`} className="w-full h-full object-cover" />
+                    {selectedImageIndex === idx && (
+                      <div className="absolute top-1 right-1 bg-brand text-white rounded-full p-0.5">
+                        <Check size={12} />
+                      </div>
+                    )}
+                  </div>
+                ))}
+             </div>
+          </div>
+        )}
       </div>
     </div>
   );
