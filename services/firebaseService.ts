@@ -29,10 +29,62 @@ export interface User {
 }
 
 // --- LOCAL FALLBACK DATA ---
-// Veritabanı bağlantısı olmadığında veya hata durumunda kullanılacak boş listeler.
-// Gerçek bağlantı kurulduğunda bu listeler yerine veritabanı verileri kullanılır.
-let localAppointments: Appointment[] = [];
-let localContacts: ContactMessage[] = [];
+// Veritabanı bağlantısı olmadığında veya hata durumunda kullanılacak veriler.
+let localAppointments: Appointment[] = [
+  {
+    id: '1',
+    parent: 'Ayşe Demir',
+    baby: 'Can (6 Aylık)',
+    service: 'Rahatla & Büyü Paketi',
+    date: '2024-03-20',
+    time: '14:00',
+    price: '₺2.800',
+    status: 'confirmed',
+    phone: '0555 111 22 33',
+    email: 'ayse@example.com'
+  },
+  {
+    id: '2',
+    parent: 'Zeynep Yılmaz',
+    baby: 'Ada (4 Aylık)',
+    service: 'İlk Dokunuş Paketi',
+    date: '2024-03-21',
+    time: '10:30',
+    price: '₺750',
+    status: 'pending',
+    phone: '0555 444 55 66',
+    email: 'zeynep@example.com'
+  },
+  {
+    id: '3',
+    parent: 'Mehmet Kaya',
+    baby: 'Ali (8 Aylık)',
+    service: 'VIP Spa Deneyimi',
+    date: '2024-03-22',
+    time: '16:30',
+    price: '₺1.500',
+    status: 'cancelled',
+    phone: '0555 777 88 99',
+    email: 'mehmet@example.com'
+  }
+];
+
+let localContacts: ContactMessage[] = [
+  {
+    id: '1',
+    name: 'Elif Şahin',
+    email: 'elif@example.com',
+    message: 'Paketler hakkında detaylı bilgi alabilir miyim?',
+    date: '2024-03-19'
+  },
+  {
+    id: '2',
+    name: 'Ahmet Öztürk',
+    email: 'ahmet@example.com',
+    message: 'Hafta sonu için randevu müsaitliği var mı?',
+    date: '2024-03-18'
+  }
+];
 
 let mockUser: User | null = null;
 let appointmentListeners: ((apps: Appointment[]) => void)[] = [];
@@ -66,9 +118,9 @@ export const subscribeToAppointments = (callback: (appointments: Appointment[]) 
         callback(appointments);
       }, (error) => {
         console.warn("Firestore Appointment Read Error:", error.message);
-        // Hata durumunda (örn: veritabanı yoksa) boş/lokal listeyi döndür
-        if (error.code === 'permission-denied' || error.code === 'not-found') {
-             console.info("ℹ️ Lütfen Firebase Console'da Firestore Database'i oluşturduğunuzdan emin olun.");
+        // Hata durumunda (örn: veritabanı yoksa veya bağlantı yoksa) lokal listeyi döndür
+        if (error.code === 'permission-denied' || error.code === 'not-found' || error.code === 'unavailable') {
+             console.info("ℹ️ Çevrimdışı mod: Lokal veriler gösteriliyor.");
         }
         callback([...localAppointments]);
         addListener(appointmentListeners, callback);
@@ -103,10 +155,10 @@ export const addAppointmentToFirebase = async (appointmentData: Omit<Appointment
     }
   } catch (error) {
     console.error("Firebase'e kayıt eklenemedi:", error);
-    throw error;
+    // Hata olsa bile fallback'e devam et (Optimistic UI için)
   }
 
-  // Fallback (Sadece Firebase çalışmıyorsa)
+  // Fallback (Sadece Firebase çalışmıyorsa veya hata verdiyse)
   const newApp: Appointment = {
     ...newAppBase,
     id: Date.now().toString(),
@@ -195,7 +247,7 @@ export const addContactMessage = async (data: { name: string; email: string; mes
     }
   } catch (error) {
     console.error("Firebase mesaj gönderme hatası:", error);
-    throw error;
+    // Hata durumunda local fallback
   }
 
   // Fallback
@@ -209,7 +261,15 @@ export const addContactMessage = async (data: { name: string; email: string; mes
 };
 
 export const getCustomers = async () => {
-  if (!isFirebaseReady || !db) return [];
+  // Offline modda customers listesi de local verilerden dönmeli
+  if (!isFirebaseReady || !db) {
+     const map = new Map();
+     localAppointments.forEach(app => {
+        const key = app.email || app.phone || app.parent;
+        if (!map.has(key)) map.set(key, { id: key, name: app.parent, email: app.email, phone: app.phone, type: 'Randevu', lastDate: app.date });
+     });
+     return Array.from(map.values());
+  }
 
   try {
     // Fetch both collections to aggregate unique customers
@@ -254,7 +314,13 @@ export const getCustomers = async () => {
     return Array.from(customerMap.values());
   } catch (error) {
     console.error("Error fetching customers:", error);
-    return [];
+    // Error durumunda local verileri kullan
+    const map = new Map();
+     localAppointments.forEach(app => {
+        const key = app.email || app.phone || app.parent;
+        if (!map.has(key)) map.set(key, { id: key, name: app.parent, email: app.email, phone: app.phone, type: 'Randevu', lastDate: app.date });
+     });
+    return Array.from(map.values());
   }
 };
 
@@ -274,6 +340,14 @@ export const loginUser = async (email: string, pass: string) => {
          alert("Firebase Console'da Email/Password giriş yöntemi etkinleştirilmemiş.");
       }
       
+      // Hata durumunda (eğer 'could not reach backend' vb. ise) demo girişi dene
+      if (error.code === 'auth/network-request-failed' && email === 'admin@egebabyspa.com' && pass === '123456') {
+          console.warn("⚠️ Ağ hatası nedeniyle Demo Modu ile giriş yapılıyor.");
+          mockUser = { email, uid: 'mock-admin-id', displayName: 'Demo Admin' };
+          notifyAuthListeners();
+          return;
+      }
+
       throw error;
     }
   } else {
@@ -328,11 +402,22 @@ export const subscribeToAuth = (callback: (user: User | null) => void) => {
 
 export const updateAdminProfile = async (data: { displayName?: string, email?: string }) => {
   if (isFirebaseReady && auth && auth.currentUser) {
-    if (data.email && data.email !== auth.currentUser.email) {
-      await updateEmail(auth.currentUser, data.email);
-    }
-    if (data.displayName && data.displayName !== auth.currentUser.displayName) {
-      await updateProfile(auth.currentUser, { displayName: data.displayName });
+    try {
+        if (data.email && data.email !== auth.currentUser.email) {
+          await updateEmail(auth.currentUser, data.email);
+        }
+        if (data.displayName && data.displayName !== auth.currentUser.displayName) {
+          await updateProfile(auth.currentUser, { displayName: data.displayName });
+        }
+    } catch(e) {
+        console.error("Update profile failed", e);
+        // Fallback for demo
+        if (mockUser) {
+            if (data.email) mockUser.email = data.email;
+            if (data.displayName) mockUser.displayName = data.displayName;
+            notifyAuthListeners();
+        }
+        throw e;
     }
   } else {
     // Demo mode

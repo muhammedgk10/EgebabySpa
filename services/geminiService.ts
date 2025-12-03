@@ -1,7 +1,19 @@
-
 import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
 
-const API_KEY = process.env.API_KEY || '';
+// Robustly retrieve API Key.
+// Tarayıcı ortamında 'process' tanımlı olmayabilir hatasını önlemek için try-catch bloğu ve kontrol eklendi.
+const getApiKey = () => {
+  try {
+    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+      return process.env.API_KEY;
+    }
+    return '';
+  } catch (e) {
+    return '';
+  }
+};
+
+const API_KEY = getApiKey();
 
 let client: GoogleGenAI | null = null;
 
@@ -46,8 +58,8 @@ export const sendMessageToGemini = async (chat: Chat, message: string): Promise<
 };
 
 export const generateImage = async (prompt: string, size: '1K' | '2K' | '4K'): Promise<string | null> => {
-  // Create a new instance to ensure we use the latest selected API Key if available in the environment
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  // Her istekte API key kontrolü yap (Key değişirse diye)
+  const ai = new GoogleGenAI({ apiKey: getApiKey() });
   
   try {
     const response: GenerateContentResponse = await ai.models.generateContent({
@@ -63,7 +75,6 @@ export const generateImage = async (prompt: string, size: '1K' | '2K' | '4K'): P
       }
     });
 
-    // Find the image part in the response
     if (response.candidates?.[0]?.content?.parts) {
       for (const part of response.candidates[0].content.parts) {
         if (part.inlineData) {
@@ -79,10 +90,9 @@ export const generateImage = async (prompt: string, size: '1K' | '2K' | '4K'): P
 };
 
 export const editImage = async (imageBase64: string, mimeType: string, prompt: string): Promise<string | null> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: getApiKey() });
   
   try {
-    // Ensure base64 string is clean (remove data URL prefix if present)
     const data = imageBase64.includes('base64,') ? imageBase64.split('base64,')[1] : imageBase64;
 
     const response: GenerateContentResponse = await ai.models.generateContent({

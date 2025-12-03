@@ -1,6 +1,6 @@
 
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, initializeFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 // ---------------------------------------------------------------------------
@@ -23,7 +23,12 @@ let isFirebaseReady = false;
 
 try {
   app = initializeApp(firebaseConfig);
-  db = getFirestore(app);
+  
+  // Use initializeFirestore to configure settings for better stability
+  db = initializeFirestore(app, {
+    experimentalForceLongPolling: true, // Helps with connection issues in some environments
+  });
+  
   auth = getAuth(app);
   isFirebaseReady = true;
   console.log('✅ Firebase bağlantısı başlatıldı.');

@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { X, Calendar as CalendarIcon, Clock, CheckCircle, User, Phone, Mail, Sparkles, Sun, CloudSun, ChevronRight } from 'lucide-react';
 import { Appointment } from '../types';
 
@@ -7,9 +7,10 @@ interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (appointment: Omit<Appointment, 'id' | 'status'>) => void;
+  initialService?: string;
 }
 
-const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSubmit }) => {
+const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSubmit, initialService }) => {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     service: '',
@@ -22,6 +23,12 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSubmit }
   });
   
   const dateInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isOpen && initialService) {
+        setFormData(prev => ({ ...prev, service: initialService }));
+    }
+  }, [isOpen, initialService]);
 
   if (!isOpen) return null;
 
@@ -59,23 +66,9 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSubmit }
   const formatDateDisplay = (dateStr: string) => {
     if (!dateStr) return 'Tarih Seçiniz';
     const date = new Date(dateStr);
+    // Check for invalid date
+    if (isNaN(date.getTime())) return 'Tarih Seçiniz';
     return date.toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long' });
-  };
-
-  const handleDateCardClick = () => {
-    if (dateInputRef.current) {
-        try {
-            if ('showPicker' in dateInputRef.current) {
-                (dateInputRef.current as any).showPicker();
-            } else {
-                dateInputRef.current.focus();
-                dateInputRef.current.click();
-            }
-        } catch (e) {
-            // Fallback
-            dateInputRef.current.click();
-        }
-    }
   };
 
   const serviceOptions = [
@@ -188,7 +181,6 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSubmit }
                       <div className="lg:col-span-2">
                          <div 
                             className={`relative h-full min-h-[200px] rounded-2xl border-2 transition-all overflow-hidden cursor-pointer group ${formData.date ? 'border-brand bg-brand/5' : 'border-gray-200 bg-gray-50 hover:border-gray-300'}`}
-                            onClick={handleDateCardClick}
                          >
                             <input 
                                ref={dateInputRef}

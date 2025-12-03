@@ -87,10 +87,10 @@ const Packages: React.FC<PackagesProps> = ({ onOpenBooking }) => {
               key={pkg.id} 
               className={`relative bg-white rounded-3xl p-8 transition-all duration-300 flex flex-col ${
                 pkg.isFeatured 
-                  ? 'shadow-2xl shadow-brand/20 scale-105 md:scale-110 border-2 border-brand ring-4 ring-brand/10 z-20' 
+                  ? 'shadow-2xl shadow-brand/20 scale-105 md:scale-110 border-2 border-brand ring-4 ring-brand/10 z-20 hover:scale-[1.08] md:hover:scale-[1.15] hover:shadow-brand/40' 
                   : pkg.isPopular 
-                    ? 'shadow-xl scale-105 border-2 border-brand z-10'
-                    : 'shadow-lg hover:shadow-xl border border-gray-100 hover:border-brand/30'
+                    ? 'shadow-xl scale-105 border-2 border-brand z-10 hover:scale-110 hover:shadow-2xl'
+                    : 'shadow-lg border border-gray-100 hover:border-brand/30 hover:shadow-xl hover:scale-105'
               }`}
             >
               {(pkg.isFeatured || pkg.isPopular) && (

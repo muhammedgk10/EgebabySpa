@@ -1,27 +1,113 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr-TR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ege Baby Spa & Wellness</title>
+    
+    <!-- SEO Meta Tags -->
+    <title>Ege Baby Spa Şanlıurfa | Bebek Masajı, Hidroterapi ve Floating Merkezi</title>
+    <meta name="description" content="Şanlıurfa'nın en kapsamlı bebek spa merkezi Ege Baby Spa. Haliliye, Karaköprü ve Eyyübiye bölgesinde uzman destekli hidroterapi, bebek masajı, kolik tedavisi ve floating hizmetleri." />
+    <meta name="keywords" content="şanlıurfa bebek spa, urfa bebek masajı, haliliye bebek spa, karaköprü bebek spa, şanlıurfa hidroterapi, kolik bebek şanlıurfa, bebek yüzme kursu urfa, ege baby spa" />
+    <meta name="author" content="Ege Baby Spa & Wellness" />
+    <meta name="robots" content="index, follow" />
+    <meta name="geo.region" content="TR-63" />
+    <meta name="geo.placename" content="Şanlıurfa" />
+    <meta name="geo.position" content="37.1674;38.7955" />
+    <meta name="ICBM" content="37.1674, 38.7955" />
+
+    <!-- Open Graph / Facebook / WhatsApp -->
+    <meta property="og:type" content="business.business" />
+    <meta property="og:url" content="https://egebabyspa.com/" />
+    <meta property="og:title" content="Ege Baby Spa Şanlıurfa | Minik Bedenler İçin Büyük Huzur" />
+    <meta property="og:description" content="Şanlıurfa'da bebeğinizin gelişimini destekleyen profesyonel spa, masaj ve hidroterapi merkezi. Hemen randevu alın." />
+    <meta property="og:image" content="https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=1200" />
+    <meta property="og:locale" content="tr_TR" />
+    <meta property="business:contact_data:street_address" content="Atatürk Bulvarı" />
+    <meta property="business:contact_data:locality" content="Haliliye" />
+    <meta property="business:contact_data:region" content="Şanlıurfa" />
+    <meta property="business:contact_data:postal_code" content="63300" />
+    <meta property="business:contact_data:country_name" content="Turkey" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://egebabyspa.com/" />
+    <meta property="twitter:title" content="Ege Baby Spa Şanlıurfa" />
+    <meta property="twitter:description" content="Şanlıurfa'da bebeğiniz için en hijyenik spa ve masaj deneyimi." />
+    <meta property="twitter:image" content="https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=1200" />
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- JSON-LD Schema Markup for Local SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "HealthAndBeautyBusiness",
+      "name": "Ege Baby Spa Şanlıurfa",
+      "image": "https://images.unsplash.com/photo-1519689680058-324335c77eba",
+      "@id": "https://egebabyspa.com",
+      "url": "https://egebabyspa.com",
+      "telephone": "+905555555555",
+      "priceRange": "₺₺",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Bahçelievler Mah. Atatürk Bulvarı",
+        "addressLocality": "Haliliye",
+        "addressRegion": "Şanlıurfa",
+        "postalCode": "63300",
+        "addressCountry": "TR"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 37.1674,
+        "longitude": 38.7955
+      },
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+          "Sunday"
+        ],
+        "opens": "09:00",
+        "closes": "19:00"
+      },
+      "sameAs": [
+        "https://www.instagram.com/egebabyspa",
+        "https://www.facebook.com/egebabyspa"
+      ],
+      "description": "Şanlıurfa Haliliye'de hizmet veren Ege Baby Spa, 0-36 ay bebekler için hidroterapi (floating) ve masaj hizmetleri sunan, hijyenik ve uzman kadrolu bir sağlıklı yaşam merkezidir."
+    }
+    </script>
+
     <script>
+      // Polyfill process and global for browser compatibility
+      // Bu bölüm Firebase ve diğer kütüphanelerin tarayıcıda hatasız çalışması için kritiktir.
+      window.process = window.process || { env: { NODE_ENV: 'production' } };
+      window.global = window;
+
       tailwind.config = {
         theme: {
           extend: {
             fontFamily: {
-              sans: ['Quicksand', 'sans-serif'],
-              admin: ['Inter', 'sans-serif'],
+              sans: ['Montserrat', 'sans-serif'],
+              serif: ['Cormorant Garamond', 'serif'],
+              admin: ['Montserrat', 'sans-serif'],
             },
             colors: {
               brand: {
-                light: '#E0F2F1', // Soft Teal
-                DEFAULT: '#26A69A', // Teal
-                dark: '#00695C', // Dark Teal
-                accent: '#FFAB91', // Soft Peach/Salmon for warmth
+                light: '#EBF4F6', // Çok açık pastel mavi
+                DEFAULT: '#88B7B5', // Pastel Teal/Mavi (Soft Luxury)
+                dark: '#568381', // Koyu Teal
+                sand: '#F3EFE0', // Kum Beji
+                gold: '#D4AF37', // Altın detaylar için
+                accent: '#E8A87C', // Soft Salmon
               }
             },
             keyframes: {
@@ -32,42 +118,67 @@
               'subtle-bounce': {
                 '0%, 100%': { transform: 'translateY(0)', animationTimingFunction: 'cubic-bezier(0.8, 0, 1, 1)' },
                 '50%': { transform: 'translateY(-15%)', animationTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)' },
+              },
+              'fade-in-up': {
+                '0%': { opacity: '0', transform: 'translateY(30px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              'fade-in-down': {
+                '0%': { opacity: '0', transform: 'translateY(-20px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              'fade-in-left': {
+                '0%': { opacity: '0', transform: 'translateX(-30px)' },
+                '100%': { opacity: '1', transform: 'translateX(0)' },
+              },
+              'zoom-in': {
+                '0%': { opacity: '0', transform: 'scale(0.95)' },
+                '100%': { opacity: '1', transform: 'scale(1)' },
+              },
+              'fade-in': {
+                '0%': { opacity: '0' },
+                '100%': { opacity: '1' },
+              },
+              'slide-in-right': {
+                '0%': { transform: 'translateX(100%)', opacity: '0' },
+                '100%': { transform: 'translateX(0)', opacity: '1' },
+              },
+              'bounce-slow': {
+                '0%, 100%': { transform: 'translateY(-5%)' },
+                '50%': { transform: 'translateY(5%)' },
+              },
+              'shake': {
+                '0%, 100%': { transform: 'translateX(0)' },
+                '10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-4px)' },
+                '20%, 40%, 60%, 80%': { transform: 'translateX(4px)' },
               }
             },
             animation: {
-              'shimmer': 'shimmer 3s linear infinite',
-              'bounce-slow': 'bounce 3s infinite',
-              'subtle-bounce': 'subtle-bounce 1s infinite',
+              'fade-in-up': 'fade-in-up 0.8s ease-out forwards',
+              'fade-in-down': 'fade-in-down 0.5s ease-out forwards',
+              'fade-in-left': 'fade-in-left 0.8s ease-out forwards',
+              'zoom-in': 'zoom-in 0.4s ease-out forwards',
+              'fade-in': 'fade-in 0.5s ease-out forwards',
+              'slide-in-right': 'slide-in-right 0.5s ease-out forwards',
+              'subtle-bounce': 'subtle-bounce 2s infinite',
+              'bounce-slow': 'bounce-slow 3s infinite',
+              'shimmer': 'shimmer 2s linear infinite',
+              'shake': 'shake 0.5s ease-in-out',
             }
           }
         }
       }
     </script>
-    <style>
-      body {
-        font-family: 'Quicksand', sans-serif;
-      }
-      .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-      }
-      .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-      }
-    </style>
-<script type="importmap">
+  <script type="importmap">
 {
   "imports": {
     "react": "https://aistudiocdn.com/react@^19.2.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
     "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
-    "vite": "https://aistudiocdn.com/vite@^7.2.4",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+    "vite": "https://aistudiocdn.com/vite@^7.2.6",
     "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
-    "firebase/app": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
-    "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js",
-    "firebase/auth": "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js",
     "firebase/": "https://aistudiocdn.com/firebase@^12.6.0/"
   }
 }

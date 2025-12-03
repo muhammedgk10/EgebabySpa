@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Waves, HeartHandshake, Bath, Award, ArrowRight } from 'lucide-react';
+import { Waves, HeartHandshake, Bath, Sparkles, ArrowRight } from 'lucide-react';
 import { Service, SectionId } from '../types';
 
 interface ServicesProps {
@@ -11,30 +11,30 @@ const Services: React.FC<ServicesProps> = ({ onOpenBooking }) => {
   const services: Service[] = [
     {
       id: 'hydrotherapy',
-      title: 'Hidroterapi',
-      description: 'Özel olarak tasarlanmış, ozon ile temizlenen jakuzilerde, bebeklerin suyun kaldırma kuvvetiyle özgürce hareket etmesini sağlıyoruz.',
+      title: 'Hidroterapi (Floating)',
+      description: 'Bebeğinizin, 36°C sıcaklıktaki ozonla temizlenen özel jakuzilerde, boyun simidi ile özgürce hareket etmesini sağlıyoruz. Bu "Floating" deneyimi, kas gelişimini hızlandırır ve denge koordinasyonunu artırır.',
       iconName: 'Waves',
       imageUrl: 'https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=800&fm=webp&fit=crop'
     },
     {
       id: 'massage',
-      title: 'Bebek Masajı',
-      description: 'Uzman terapistlerimiz eşliğinde yapılan masaj ile gaz sancılarını, kolik ağrılarını hafifletiyor ve uyku kalitesini artırıyoruz.',
+      title: 'Terapötik Bebek Masajı',
+      description: 'Uzman terapistlerimiz tarafından uygulanan ritmik masaj teknikleri ile bebeğinizin dolaşım sistemini harekete geçiriyor, kolik ağrılarını hafifletiyor ve onu derin bir uykuya hazırlıyoruz.',
       iconName: 'HeartHandshake',
       imageUrl: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=800&fm=webp&fit=crop'
     },
     {
-      id: 'floating',
-      title: 'Floating',
-      description: 'Anti-alerjik boyun simidi ile güvenli bir şekilde suyun üzerinde süzülen bebeklerde denge ve koordinasyon gelişir.',
-      iconName: 'Bath',
+      id: 'daily-care',
+      title: 'Organik Bakım & Hijyen',
+      description: 'Spa seansı sonrası, bebeğinizin hassas cildine uygun %100 organik yağlarla bakım yapıyor; tırnak, burun ve kulak temizliği gibi günlük hijyen ihtiyaçlarını profesyonelce karşılıyoruz.',
+      iconName: 'Sparkles',
       imageUrl: 'https://images.unsplash.com/photo-1571210862729-78a52d3779a2?q=80&w=800&fm=webp&fit=crop'
     },
     {
       id: 'mother-baby',
-      title: 'Anne & Bebek',
-      description: 'Anne ile bebeğin bağını güçlendiren, rahatlatıcı ve keyifli özel seanslarımız ile stresten uzaklaşın.',
-      iconName: 'Award',
+      title: 'Ebeveyn Danışmanlığı',
+      description: 'Bebeğinizin motor gelişimi, gaz masajı eğitimi ve evde uygulayabileceğiniz rahatlama rutinleri hakkında sertifikalı uzmanlarımızdan birebir danışmanlık alın.',
+      iconName: 'Bath',
       imageUrl: 'https://images.unsplash.com/photo-1627930869687-0b4458514d02?q=80&w=800&fm=webp&fit=crop'
     }
   ];
@@ -44,8 +44,16 @@ const Services: React.FC<ServicesProps> = ({ onOpenBooking }) => {
       case 'Waves': return <Waves size={32} />;
       case 'HeartHandshake': return <HeartHandshake size={32} />;
       case 'Bath': return <Bath size={32} />;
-      case 'Award': return <Award size={32} />;
+      case 'Sparkles': return <Sparkles size={32} />;
       default: return <Waves size={32} />;
+    }
+  };
+
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    const target = e.target as HTMLImageElement;
+    const fallback = 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=800&fm=webp&fit=crop';
+    if (target.src !== fallback) {
+        target.src = fallback;
     }
   };
 
@@ -54,10 +62,10 @@ const Services: React.FC<ServicesProps> = ({ onOpenBooking }) => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <span className="text-brand font-bold tracking-wider text-sm uppercase">Hizmetlerimiz</span>
-          <h2 className="text-3xl md:text-5xl font-bold text-gray-800 mt-2 mb-4">Neler Sunuyoruz?</h2>
+          <h2 className="text-3xl md:text-5xl font-bold text-gray-800 mt-2 mb-4">Minik Bedenlere Profesyonel Bakım</h2>
           <div className="w-24 h-1.5 bg-brand mx-auto rounded-full mb-6 opacity-50"></div>
           <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-            Bebeğinizin fiziksel ve zihinsel gelişimini destekleyen, hijyenik ve güvenli spa hizmetlerimiz.
+            0-36 ay arası bebeklerin fiziksel ve duygusal ihtiyaçlarına özel olarak tasarlanmış, hijyenin en üst seviyede tutulduğu wellness hizmetlerimiz.
           </p>
         </div>
 
@@ -70,9 +78,7 @@ const Services: React.FC<ServicesProps> = ({ onOpenBooking }) => {
                   src={service.imageUrl} 
                   alt={service.title} 
                   className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=800&fm=webp&fit=crop';
-                  }}
+                  onError={handleImageError}
                 />
                 <div className="absolute top-4 right-4 bg-white p-3 rounded-full text-brand shadow-lg z-20 group-hover:rotate-12 transition-transform">
                   {getIcon(service.iconName)}
@@ -89,7 +95,7 @@ const Services: React.FC<ServicesProps> = ({ onOpenBooking }) => {
                   onClick={onOpenBooking}
                   className="flex items-center gap-2 text-brand font-bold text-sm uppercase tracking-wide group-hover:gap-3 transition-all"
                 >
-                  Detaylı Bilgi <ArrowRight size={16} />
+                  Randevu Al <ArrowRight size={16} />
                 </button>
               </div>
             </div>

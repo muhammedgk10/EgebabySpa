@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -12,6 +11,10 @@ import BookingModal from './components/BookingModal';
 import Login from './components/Login';
 import AdminPanel from './components/AdminPanel';
 import Footer from './components/Footer';
+import Testimonials from './components/Testimonials';
+import ToastContainer, { ToastMessage } from './components/Toast';
+import PackageWizard from './components/PackageWizard'; // New
+import GiftCards from './components/GiftCards'; // New
 import { Appointment } from './types';
 import { 
   subscribeToAppointments, 
@@ -27,23 +30,51 @@ type PageView = 'home' | 'login' | 'admin';
 function App() {
   const [currentView, setCurrentView] = useState<PageView>('home');
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [isWizardOpen, setIsWizardOpen] = useState(false); // New
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [preSelectedService, setPreSelectedService] = useState(''); // New State for Wizard flow
+  
+  // Toast State
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-  // Subscribe to Authentication State
+  const addToast = (type: 'success' | 'error' | 'info', title: string, message: string) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setToasts((prev) => [...prev, { id, type, title, message }]);
+    setTimeout(() => removeToast(id), 5000);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
+
+  useEffect(() => {
+    const checkAdminRoute = () => {
+      const isHashRoute = window.location.hash === '#akkayasoft' || window.location.hash === '#/akkayasoft';
+      const isPathRoute = window.location.pathname === '/akkayasoft';
+      if (isHashRoute || isPathRoute) setCurrentView('login');
+    };
+    checkAdminRoute();
+    window.addEventListener('hashchange', checkAdminRoute);
+    return () => window.removeEventListener('hashchange', checkAdminRoute);
+  }, []);
+
   useEffect(() => {
     const unsubscribe = subscribeToAuth((user) => {
       setIsAuthenticated(!!user);
       if (user) {
-        // If user is logged in and was trying to login, show admin
-        if (currentView === 'login') setCurrentView('admin');
+        const isHashRoute = window.location.hash === '#akkayasoft' || window.location.hash === '#/akkayasoft';
+        const isPathRoute = window.location.pathname === '/akkayasoft';
+        if (currentView === 'login' || isHashRoute || isPathRoute) {
+            setCurrentView('admin');
+            addToast('success', 'Hoş Geldiniz', `Tekrar merhaba, ${user.displayName || 'Yönetici'}`);
+        }
       }
     });
     return () => unsubscribe();
   }, [currentView]);
 
-  // Subscribe to Appointments Data (Real-time)
   useEffect(() => {
     const unsubscribe = subscribeToAppointments((data) => {
       setAppointments(data);
@@ -52,107 +83,117 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  const openBooking = () => setIsBookingOpen(true);
-  const closeBooking = () => setIsBookingOpen(false);
-
-  const handleLoginSuccess = () => {
-    // Auth state listener will handle the view change
-    setCurrentView('admin');
+  const openBooking = (serviceName?: string) => {
+      if(serviceName) setPreSelectedService(serviceName);
+      setIsBookingOpen(true);
   };
+  
+  const closeBooking = () => {
+      setIsBookingOpen(false);
+      setPreSelectedService(''); // Reset after close
+  };
+  
+  const openWizard = () => setIsWizardOpen(true);
+  const closeWizard = () => setIsWizardOpen(false);
+
+  const handleLoginSuccess = () => setCurrentView('admin');
 
   const handleLogout = async () => {
     await logoutUser();
     setCurrentView('home');
-  };
-
-  const navigateToLogin = () => {
-    if (isAuthenticated) {
-      setCurrentView('admin');
-    } else {
-      setCurrentView('login');
-    }
+    if (window.location.hash === '#akkayasoft') window.history.replaceState(null, '', window.location.pathname);
+    if (window.location.pathname === '/akkayasoft') window.history.replaceState(null, '', '/');
+    window.scrollTo(0, 0);
+    addToast('info', 'Oturum Kapandı', 'Başarıyla çıkış yaptınız.');
   };
 
   const navigateToHome = () => {
     setCurrentView('home');
+    if (window.location.hash === '#akkayasoft') window.history.replaceState(null, '', window.location.pathname);
     window.scrollTo(0, 0);
   };
 
-  // Add new appointment (to Firebase)
   const handleNewAppointment = async (newApp: Omit<Appointment, 'id' | 'status'>) => {
     try {
       await addAppointmentToFirebase(newApp);
-      // No need to set state manually, listener updates it
+      addToast('success', 'Randevu Oluşturuldu', 'Talebiniz başarıyla alındı. Sizinle iletişime geçeceğiz.');
     } catch (error) {
-      alert("Randevu oluşturulurken bir hata oluştu.");
+      addToast('error', 'Hata', 'Randevu oluşturulurken bir hata oluştu.');
     }
   };
 
-  // Update appointment status (in Firebase)
   const handleUpdateStatus = async (id: string, status: 'confirmed' | 'cancelled') => {
     try {
       await updateAppointmentStatusInFirebase(id, status);
+      addToast('success', 'Durum Güncellendi', `Randevu durumu: ${status === 'confirmed' ? 'Onaylandı' : 'İptal Edildi'}`);
     } catch (error) {
-      alert("Durum güncellenemedi.");
+      addToast('error', 'Hata', 'Durum güncellenemedi.');
     }
   };
 
-  // Delete appointment (from Firebase)
   const handleDeleteAppointment = async (id: string) => {
     if (window.confirm('Bu randevuyu kalıcı olarak silmek istediğinizden emin misiniz?')) {
       try {
         await deleteAppointmentFromFirebase(id);
+        addToast('info', 'Silindi', 'Randevu kaydı silindi.');
       } catch (error) {
-        alert("Silme işlemi başarısız.");
+        addToast('error', 'Hata', 'Silme işlemi başarısız.');
       }
     }
   };
 
-  // Render Logic
+  // Pre-select service from Wizard
+  const handleWizardSelect = (pkgName: string) => {
+     openBooking(pkgName);
+     addToast('info', 'Paket Seçildi', `${pkgName} için randevu oluşturabilirsiniz.`);
+  };
+
   if (currentView === 'login') {
     return (
-      <Login 
-        onLogin={handleLoginSuccess} 
-        onBack={navigateToHome} 
-      />
+      <>
+        <ToastContainer toasts={toasts} removeToast={removeToast} />
+        <Login onLogin={handleLoginSuccess} onBack={navigateToHome} notify={addToast} />
+      </>
     );
   }
 
   if (currentView === 'admin') {
-    return isAuthenticated ? (
-      <AdminPanel 
-        onLogout={handleLogout} 
-        appointments={appointments}
-        onUpdateStatus={handleUpdateStatus}
-        onDeleteAppointment={handleDeleteAppointment}
-      />
-    ) : (
-      <Login onLogin={handleLoginSuccess} onBack={navigateToHome} />
+    return (
+      <>
+        <ToastContainer toasts={toasts} removeToast={removeToast} />
+        {isAuthenticated ? (
+          <AdminPanel 
+            onLogout={handleLogout} 
+            appointments={appointments}
+            onUpdateStatus={handleUpdateStatus}
+            onDeleteAppointment={handleDeleteAppointment}
+            notify={addToast}
+          />
+        ) : (
+          <Login onLogin={handleLoginSuccess} onBack={navigateToHome} notify={addToast} />
+        )}
+      </>
     );
   }
 
-  // Default: Home View
   return (
-    <div className="bg-white min-h-screen font-sans selection:bg-brand selection:text-white flex flex-col">
-      <Navbar 
-        onOpenBooking={openBooking} 
-        onAdminClick={navigateToLogin}
-      />
+    <div className="bg-[#FAFAFA] min-h-screen font-sans selection:bg-brand selection:text-white flex flex-col">
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <Navbar onOpenBooking={() => openBooking()} />
       <main className="flex-grow">
-        <Hero onOpenBooking={openBooking} />
-        <Services onOpenBooking={openBooking} />
-        <Packages onOpenBooking={openBooking} />
+        <Hero onOpenBooking={() => openBooking()} onOpenWizard={openWizard} />
+        <Services onOpenBooking={() => openBooking()} />
+        <Packages onOpenBooking={() => openBooking()} />
         <Benefits />
+        <GiftCards /> 
+        <Testimonials />
         <Blog />
-        <Contact />
+        <Contact notify={addToast} />
       </main>
       <Footer />
-      <ChatWidget />
-      <BookingModal 
-        isOpen={isBookingOpen} 
-        onClose={closeBooking} 
-        onSubmit={handleNewAppointment}
-      />
+      <ChatWidget notify={addToast} />
+      <BookingModal isOpen={isBookingOpen} onClose={closeBooking} onSubmit={handleNewAppointment} initialService={preSelectedService} />
+      <PackageWizard isOpen={isWizardOpen} onClose={closeWizard} onSelectPackage={handleWizardSelect} /> 
     </div>
   );
 }

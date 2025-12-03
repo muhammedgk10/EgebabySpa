@@ -1,13 +1,13 @@
+
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Droplets, Calendar, Lock } from 'lucide-react';
 import { SectionId } from '../types';
 
 interface NavbarProps {
   onOpenBooking: () => void;
-  onAdminClick: () => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onOpenBooking, onAdminClick }) => {
+const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -27,6 +27,11 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenBooking, onAdminClick }) => {
     }
   };
 
+  const handleAdminClick = () => {
+    setIsOpen(false);
+    window.location.hash = 'akkayasoft';
+  };
+
   const navLinks = [
     { id: SectionId.HOME, label: 'Ana Sayfa' },
     { id: SectionId.SERVICES, label: 'Hizmetler' },
@@ -38,15 +43,7 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenBooking, onAdminClick }) => {
 
   return (
     <nav className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white/95 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'}`}>
-      {/* Admin Login Trigger - Fixed Top Left */}
-      <button 
-        onClick={onAdminClick}
-        className="fixed top-0 left-0 z-[60] p-2 bg-yellow-400 text-white hover:bg-yellow-500 transition-colors shadow-md rounded-br-xl"
-        title="Yönetici Girişi"
-      >
-        <Lock size={20} />
-      </button>
-
+      
       <div className="container mx-auto px-4 flex justify-between items-center relative">
         {/* Logo */}
         <div onClick={() => scrollToSection(SectionId.HOME)} className="flex items-center gap-2 cursor-pointer">
@@ -71,13 +68,23 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenBooking, onAdminClick }) => {
               {link.label}
             </button>
           ))}
-          <button 
-            onClick={onOpenBooking}
-            className="flex items-center gap-2 px-5 py-2.5 bg-brand text-white text-sm font-semibold rounded-full hover:bg-brand-dark transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-          >
-            <Calendar size={16} />
-            Randevu Al
-          </button>
+          
+          <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
+            <button 
+                onClick={handleAdminClick}
+                className="p-2 text-gray-400 hover:text-brand hover:bg-brand-light/20 rounded-full transition-all"
+                title="Yönetici Girişi"
+            >
+                <Lock size={18} />
+            </button>
+            <button 
+                onClick={onOpenBooking}
+                className="flex items-center gap-2 px-5 py-2.5 bg-brand text-white text-sm font-semibold rounded-full hover:bg-brand-dark transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+            >
+                <Calendar size={16} />
+                Randevu Al
+            </button>
+          </div>
         </div>
 
         {/* Mobile Toggle */}
@@ -105,6 +112,13 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenBooking, onAdminClick }) => {
             className="mt-4 px-8 py-3 bg-brand text-white font-bold rounded-full shadow-md w-[80%]"
           >
             Randevu Al
+          </button>
+          
+          <button 
+            onClick={handleAdminClick}
+            className="mt-8 text-gray-400 hover:text-brand flex items-center gap-2 text-sm font-medium"
+          >
+            <Lock size={16} /> Yönetici Girişi
           </button>
         </div>
       )}

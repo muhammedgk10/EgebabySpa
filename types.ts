@@ -40,6 +40,8 @@ export interface BlogPost {
   date: string;
   imageUrl: string;
   category: string;
+  metaTitle?: string;
+  metaDescription?: string;
 }
 
 export interface Appointment {
@@ -54,6 +56,7 @@ export interface Appointment {
   phone?: string;
   email?: string;
   createdAt?: any; // Firestore timestamp
+  notes?: string;
 }
 
 export interface ContactMessage {
@@ -64,6 +67,25 @@ export interface ContactMessage {
   date: string;
 }
 
+export interface InventoryItem {
+  id: string;
+  name: string;
+  category: string;
+  quantity: number;
+  minThreshold: number;
+  unit: string;
+  status: 'ok' | 'low' | 'critical';
+}
+
+export interface StaffMember {
+  id: string;
+  name: string;
+  role: string;
+  status: 'active' | 'busy' | 'off';
+  dailyAppointments: number;
+  performance: number; // 0-100
+}
+
 export enum SectionId {
   HOME = 'home',
   ABOUT = 'about',
@@ -72,4 +94,5 @@ export enum SectionId {
   BLOG = 'blog',
   BENEFITS = 'benefits',
   CONTACT = 'contact',
+  GIFTCARDS = 'giftcards',
 }

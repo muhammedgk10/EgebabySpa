@@ -8,14 +8,38 @@ const Blog: React.FC = () => {
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
   const [showAllPosts, setShowAllPosts] = useState(false);
 
+  // Distinct fallback images to use if main images fail
+  const fallbackImages = [
+    'https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1515488042361-25f4682ae2c5?q=80&w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1545030299-35a603c40026?q=80&w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1522771753035-1a5b6562f3a9?q=80&w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1607593259882-7aa7b12d5d71?q=80&w=800&auto=format&fit=crop'
+  ];
+
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>, id: string) => {
+    const target = e.target as HTMLImageElement;
+    // Use ID to deterministically pick a fallback so it stays consistent but distinct per post
+    const index = parseInt(id) || 0;
+    const fallback = fallbackImages[index % fallbackImages.length];
+    
+    if (target.src !== fallback) {
+        target.src = fallback;
+    }
+  };
+
   const initialPosts: BlogPost[] = [
     {
       id: '1',
       title: 'Bebeklerde Hidroterapinin Mucizevi Faydaları',
+      metaTitle: 'Bebek Hidroterapi Faydaları | Şanlıurfa Ege Baby Spa',
+      metaDescription: 'Şanlıurfa\'da bebek hidroterapisinin kas gelişimine ve gaz sancısına faydalarını keşfedin. Ege Baby Spa uzmanları anlatıyor.',
       excerpt: 'Suyun kaldırma kuvveti bebeğinizin kaslarını nasıl geliştirir? İşte bilimsel gerçekler ve uzman görüşleri.',
       date: '12 Mart 2024',
       category: 'Sağlık',
-      imageUrl: 'https://images.unsplash.com/photo-1575463769930-4e3a473f32c3?q=80&w=600&auto=format&fit=crop',
+      // Baby swimming/bath
+      imageUrl: 'https://images.unsplash.com/photo-1560362377-66a9b9a676b7?q=80&w=600&auto=format&fit=crop',
       content: `Hidroterapi, bebeklerin fiziksel ve zihinsel gelişimi için en doğal ve etkili yöntemlerden biridir. Suyun kaldırma kuvveti, yerçekiminin etkisini azaltarak bebeğinizin karada yapamadığı hareketleri özgürce yapabilmesine olanak tanır.
 
 Bu özgürlük hissi, bebeğinizin özgüvenini artırırken aynı zamanda kas ve iskelet sistemini güçlendirir. İşte hidroterapinin kanıtlanmış başlıca faydaları:
@@ -33,10 +57,13 @@ Ege Baby Spa olarak, ozonla temizlenen hijyenik jakuzilerimizde, uzman terapistl
     {
       id: '2',
       title: 'Kolik Bebekler İçin Rahatlatıcı Masaj Teknikleri',
+      metaTitle: 'Kolik Bebek Masajı Nasıl Yapılır? | Ege Baby Spa',
+      metaDescription: 'Gaz sancısı çeken kolik bebekler için evde uygulanabilecek etkili masaj teknikleri ve rahatlatma yöntemleri.',
       excerpt: 'Gaz sancısı çeken bebekler için evde uygulayabileceğiniz basit ama etkili masaj hareketlerini öğrenin.',
       date: '08 Mart 2024',
       category: 'Ebeveyn Rehberi',
-      imageUrl: 'https://images.unsplash.com/photo-1616091093409-773a4b6c3116?q=80&w=600&auto=format&fit=crop',
+      // Baby massage/touch
+      imageUrl: 'https://images.unsplash.com/photo-1544126566-4744398f7f73?q=80&w=600&auto=format&fit=crop',
       content: `Kolik, yeni doğan bebeklerde sıkça görülen ve hem bebeği hem de ebeveynleri zorlayan bir durumdur. Ancak doğru masaj teknikleriyle bebeğinizi rahatlatmak ve sancılarını hafifletmek mümkündür.
 
 İşte evde uygulayabileceğiniz etkili masaj teknikleri:
@@ -60,10 +87,13 @@ Merkezimizde sunduğumuz profesyonel bebek masajı seansları ile hem bu teknikl
     {
       id: '3',
       title: 'Bebek Spa Deneyimi: İlk Seans Öncesi Hazırlık',
+      metaTitle: 'İlk Bebek Spa Deneyimi Hazırlık Rehberi | Ege Baby Spa',
+      metaDescription: 'Bebeğinizle ilk spa gününüzde çantanızda neler olmalı? Şanlıurfa Ege Baby Spa ilk seans rehberi.',
       excerpt: 'İlk defa spa merkezine gelecek ebeveynler için hazırladığımız kapsamlı rehber. Çantanızda neler olmalı?',
       date: '01 Mart 2024',
       category: 'İpuçları',
-      imageUrl: 'https://images.unsplash.com/photo-1581561066738-947702581639?q=80&w=600&auto=format&fit=crop',
+      // Happy baby
+      imageUrl: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=600&auto=format&fit=crop',
       content: `Bebeğinizle ilk spa deneyiminizi yaşamaya hazırlanıyorsunuz! Bu heyecanlı günün kusursuz geçmesi için size küçük bir hazırlık listesi hazırladık.
 
 Nelere Dikkat Etmelisiniz?
@@ -89,28 +119,37 @@ Ege Baby Spa'da sizi ve bebeğinizi ağırlamaktan mutluluk duyacağız. Geldiğ
     {
       id: '4',
       title: 'Bebeklerde Uyku Düzeni Nasıl Oluşturulur?',
+      metaTitle: 'Bebeklerde Uyku Düzeni ve Eğitimi | Ege Baby Spa',
+      metaDescription: 'Bebeğinizin uyku kalitesini artıracak ipuçları ve spa\'nın uyku düzenine olumlu etkileri.',
       excerpt: 'Kaliteli bir uyku, bebeğinizin gelişimi için beslenme kadar önemlidir. İşte uzmanlardan altın değerinde tavsiyeler.',
       date: '25 Şubat 2024',
       category: 'Ebeveyn Rehberi',
+      // Sleeping baby
       imageUrl: 'https://images.unsplash.com/photo-1522771753035-1a5b6562f3a9?q=80&w=600&auto=format&fit=crop',
       content: `Bebeklerin büyüme hormonu en çok uyku sırasında salgılanır. Bu nedenle düzenli ve kaliteli uyku, fiziksel gelişim için kritiktir. Spa seanslarımız, bebeklerin enerjilerini sağlıklı bir şekilde atmalarını sağlayarak uyku kalitesini artırır.`
     },
     {
       id: '5',
       title: 'Anne Sütü ve Bebek Bağışıklığı',
+      metaTitle: 'Anne Sütü Faydaları ve Bağışıklık | Ege Baby Spa Blog',
+      metaDescription: 'Anne sütünün bebek bağışıklık sistemindeki rolü ve emzirme döneminde dikkat edilmesi gerekenler.',
       excerpt: 'Anne sütünün mucizevi içeriği ve bebeğinizin bağışıklık sistemini nasıl güçlendirdiği hakkında bilmeniz gerekenler.',
       date: '20 Şubat 2024',
       category: 'Sağlık',
-      imageUrl: 'https://images.unsplash.com/photo-1628128383377-1c3902347711?q=80&w=600&auto=format&fit=crop',
+      // Mother and baby
+      imageUrl: 'https://images.unsplash.com/photo-1607593259882-7aa7b12d5d71?q=80&w=600&auto=format&fit=crop',
       content: `Anne sütü, bebeğinizin ilk aşısıdır. İçerdiği antikorlar sayesinde bebeğinizi enfeksiyonlara karşı korur. Emzirme süreci aynı zamanda anne ile bebek arasındaki duygusal bağı güçlendirir.`
     },
     {
       id: '6',
       title: 'Bebeklerde Motor Gelişim Evreleri',
+      metaTitle: 'Bebek Motor Gelişim Takibi 0-12 Ay | Ege Baby Spa',
+      metaDescription: 'Ay ay bebek motor gelişimi evreleri. Baş tutma, dönme ve yürüme süreçlerinde hidroterapinin etkisi.',
       excerpt: 'Baş tutmadan yürümeye kadar bebeğinizin gelişim yolculuğunda sizi neler bekliyor?',
       date: '15 Şubat 2024',
       category: 'Gelişim',
-      imageUrl: 'https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=600&auto=format&fit=crop',
+      // Baby playing
+      imageUrl: 'https://images.unsplash.com/photo-1505934338218-823355208447?q=80&w=600&auto=format&fit=crop',
       content: `Her bebeğin gelişim hızı farklıdır ancak belirli kilometre taşları vardır. 3. ayda baş kontrolü, 6. ayda desteksiz oturma gibi. Hidroterapi, bu kas gruplarını destekleyerek gelişim evrelerini daha konforlu geçirmesine yardımcı olur.`
     }
   ];
@@ -145,6 +184,7 @@ Ege Baby Spa'da sizi ve bebeğinizi ağırlamaktan mutluluk duyacağız. Geldiğ
                   src={post.imageUrl} 
                   alt={post.title} 
                   className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+                  onError={(e) => handleImageError(e, post.id)}
                 />
                 <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-brand uppercase tracking-wide">
                   {post.category}

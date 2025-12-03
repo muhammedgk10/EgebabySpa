@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Instagram, Facebook, MapPin, Phone, Mail } from 'lucide-react';
 import { SectionId } from '../types';
@@ -20,11 +19,15 @@ const Footer: React.FC = () => {
             <p className="text-gray-400 leading-relaxed mb-6 max-w-sm">
               Şanlıurfa'nın kalbinde, bebekleriniz için en hijyenik ve konforlu spa deneyimini sunuyoruz. Bebeğinizin sağlığı ve mutluluğu önceliğimizdir.
             </p>
+            <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-6">
+                <span>Hizmet Bölgelerimiz:</span>
+                <span className="text-gray-400">Haliliye • Karaköprü • Eyyübiye • Şanlıurfa Merkez</span>
+            </div>
             <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-brand transition-colors">
+              <a href="javascript:void(0)" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-brand transition-colors" title="Instagram">
                 <Instagram size={20} />
               </a>
-              <a href="#" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-brand transition-colors">
+              <a href="javascript:void(0)" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-brand transition-colors" title="Facebook">
                 <Facebook size={20} />
               </a>
             </div>
@@ -48,8 +51,8 @@ const Footer: React.FC = () => {
              <h3 className="text-lg font-bold mb-4 text-white">Bize Ulaşın</h3>
              <div className="space-y-3 text-sm text-gray-400">
                <div className="flex items-start gap-3">
-                 <MapPin size={16} className="text-brand mt-1" />
-                 <span>Haliliye, Şanlıurfa</span>
+                 <MapPin size={16} className="text-brand mt-1 shrink-0" />
+                 <span>Bahçelievler Mah. Atatürk Bulv.<br/>Haliliye / Şanlıurfa</span>
                </div>
                <div className="flex items-center gap-3">
                  <Phone size={16} className="text-brand" />
@@ -64,10 +67,10 @@ const Footer: React.FC = () => {
         </div>
 
         <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center text-gray-500 text-sm gap-4">
-          <p>&copy; {new Date().getFullYear()} Ege Baby Spa. Tüm hakları saklıdır.</p>
+          <p>&copy; {new Date().getFullYear()} Ege Baby Spa Şanlıurfa. Tüm hakları saklıdır.</p>
           <div className="flex gap-6">
-            <a href="#" className="hover:text-white">Gizlilik Politikası</a>
-            <a href="#" className="hover:text-white">Kullanım Şartları</a>
+            <a href="javascript:void(0)" className="hover:text-white cursor-pointer">Gizlilik Politikası</a>
+            <a href="javascript:void(0)" className="hover:text-white cursor-pointer">Kullanım Şartları</a>
           </div>
         </div>
       </div>

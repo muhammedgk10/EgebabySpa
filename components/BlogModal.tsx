@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X, Calendar, User, Tag } from 'lucide-react';
 import { BlogPost } from '../types';
 
@@ -10,7 +10,49 @@ interface BlogModalProps {
 }
 
 const BlogModal: React.FC<BlogModalProps> = ({ post, isOpen, onClose }) => {
+  // SEO: Update page title and meta description when modal is open
+  useEffect(() => {
+    if (isOpen && post) {
+      const originalTitle = document.title;
+      const metaDescriptionTag = document.querySelector('meta[name="description"]');
+      const originalDescription = metaDescriptionTag?.getAttribute('content') || '';
+
+      if (post.metaTitle) document.title = post.metaTitle;
+      if (post.metaDescription && metaDescriptionTag) {
+        metaDescriptionTag.setAttribute('content', post.metaDescription);
+      }
+
+      return () => {
+        document.title = originalTitle;
+        if (metaDescriptionTag) {
+          metaDescriptionTag.setAttribute('content', originalDescription);
+        }
+      };
+    }
+  }, [isOpen, post]);
+
   if (!isOpen || !post) return null;
+
+  // Fallback images consistent with Blog.tsx
+  const fallbackImages = [
+    'https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1515488042361-25f4682ae2c5?q=80&w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1545030299-35a603c40026?q=80&w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1522771753035-1a5b6562f3a9?q=80&w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1607593259882-7aa7b12d5d71?q=80&w=800&auto=format&fit=crop'
+  ];
+
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    const target = e.target as HTMLImageElement;
+    // Use ID to deterministically pick a fallback
+    const index = parseInt(post.id) || 0;
+    const fallback = fallbackImages[index % fallbackImages.length];
+    
+    if (target.src !== fallback) {
+        target.src = fallback;
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
@@ -30,7 +72,12 @@ const BlogModal: React.FC<BlogModalProps> = ({ post, isOpen, onClose }) => {
 
         {/* Image Header */}
         <div className="relative h-64 md:h-80 shrink-0">
-          <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover" />
+          <img 
+            src={post.imageUrl} 
+            alt={post.title} 
+            className="w-full h-full object-cover" 
+            onError={handleImageError}
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
           <div className="absolute bottom-6 left-6 md:left-8 right-6">
             <span className="inline-block px-3 py-1 bg-brand text-white text-xs font-bold uppercase tracking-wider rounded-full mb-3 shadow-sm border border-white/20">

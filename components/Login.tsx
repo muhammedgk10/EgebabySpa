@@ -1,14 +1,15 @@
 
 import React, { useState } from 'react';
-import { Lock, User, Info, Droplets, Loader2 } from 'lucide-react';
+import { Lock, User, Droplets, Loader2 } from 'lucide-react';
 import { loginUser } from '../services/firebaseService';
 
 interface LoginProps {
   onLogin: () => void;
   onBack: () => void;
+  notify?: (type: 'success' | 'error' | 'info', title: string, message: string) => void;
 }
 
-const Login: React.FC<LoginProps> = ({ onLogin, onBack }) => {
+const Login: React.FC<LoginProps> = ({ onLogin, onBack, notify }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -21,13 +22,15 @@ const Login: React.FC<LoginProps> = ({ onLogin, onBack }) => {
 
     try {
       await loginUser(email, password);
-      onLogin(); // Auth listener in App.tsx will handle redirect, but we call this prop for good measure
+      onLogin(); 
+      // Toast notification is handled in App.tsx via auth listener
     } catch (err: any) {
-      if (err.code === 'auth/invalid-email' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-        setError('Hatalı e-posta veya şifre.');
-      } else {
-        setError('Giriş yapılırken bir hata oluştu: ' + err.message);
-      }
+      const msg = (err.code === 'auth/invalid-email' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') 
+        ? 'Hatalı e-posta veya şifre.' 
+        : 'Giriş yapılırken bir hata oluştu.';
+      
+      setError(msg);
+      if(notify) notify('error', 'Giriş Başarısız', msg);
     } finally {
       setLoading(false);
     }
@@ -47,14 +50,6 @@ const Login: React.FC<LoginProps> = ({ onLogin, onBack }) => {
         </div>
         
         <form onSubmit={handleSubmit} className="p-8 space-y-6">
-          <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-start gap-3 animate-fade-in">
-            <Info className="text-blue-500 shrink-0 mt-0.5" size={20} />
-            <div className="text-sm text-blue-800">
-              <p className="font-bold mb-1">Güvenli Giriş:</p>
-              <p>Lütfen yetkili yönetici hesap bilgilerinizi giriniz.</p>
-            </div>
-          </div>
-
           {error && (
             <div className="bg-red-50 text-red-500 text-sm p-3 rounded-lg border border-red-100 flex items-center justify-center animate-shake">
               {error}
