@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useRef } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Services from './components/Services';
@@ -15,6 +16,7 @@ import Testimonials from './components/Testimonials';
 import ToastContainer, { ToastMessage } from './components/Toast';
 import PackageWizard from './components/PackageWizard'; // New
 import GiftCards from './components/GiftCards'; // New
+import Gallery from './components/Gallery'; // New Gallery Component
 import { Appointment } from './types';
 import { 
   subscribeToAppointments, 
@@ -36,6 +38,9 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [preSelectedService, setPreSelectedService] = useState(''); // New State for Wizard flow
   
+  // Use ref to track currentView inside callbacks without triggering re-renders
+  const currentViewRef = useRef<PageView>(currentView);
+
   // Toast State
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
@@ -48,6 +53,11 @@ function App() {
   const removeToast = (id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
+
+  // Sync ref
+  useEffect(() => {
+    currentViewRef.current = currentView;
+  }, [currentView]);
 
   useEffect(() => {
     const checkAdminRoute = () => {
@@ -66,14 +76,19 @@ function App() {
       if (user) {
         const isHashRoute = window.location.hash === '#akkayasoft' || window.location.hash === '#/akkayasoft';
         const isPathRoute = window.location.pathname === '/akkayasoft';
-        if (currentView === 'login' || isHashRoute || isPathRoute) {
+        
+        // Use ref to check current state to avoid dependency loop
+        const view = currentViewRef.current;
+        const shouldRedirect = (view === 'login' || isHashRoute || isPathRoute) && view !== 'admin';
+        
+        if (shouldRedirect) {
             setCurrentView('admin');
             addToast('success', 'Hoş Geldiniz', `Tekrar merhaba, ${user.displayName || 'Yönetici'}`);
         }
       }
     });
     return () => unsubscribe();
-  }, [currentView]);
+  }, []); // Removed currentView from dependency array to prevent infinite loop
 
   useEffect(() => {
     const unsubscribe = subscribeToAppointments((data) => {
@@ -101,15 +116,15 @@ function App() {
   const handleLogout = async () => {
     await logoutUser();
     setCurrentView('home');
-    if (window.location.hash === '#akkayasoft') window.history.replaceState(null, '', window.location.pathname);
-    if (window.location.pathname === '/akkayasoft') window.history.replaceState(null, '', '/');
+    if (window.location.hash === '#akkayasoft') window.history.replaceState({}, '', window.location.pathname);
+    if (window.location.pathname === '/akkayasoft') window.history.replaceState({}, '', '/');
     window.scrollTo(0, 0);
     addToast('info', 'Oturum Kapandı', 'Başarıyla çıkış yaptınız.');
   };
 
   const navigateToHome = () => {
     setCurrentView('home');
-    if (window.location.hash === '#akkayasoft') window.history.replaceState(null, '', window.location.pathname);
+    if (window.location.hash === '#akkayasoft') window.history.replaceState({}, '', window.location.pathname);
     window.scrollTo(0, 0);
   };
 
@@ -184,6 +199,7 @@ function App() {
         <Hero onOpenBooking={() => openBooking()} onOpenWizard={openWizard} />
         <Services onOpenBooking={() => openBooking()} />
         <Packages onOpenBooking={() => openBooking()} />
+        <Gallery />
         <Benefits />
         <GiftCards /> 
         <Testimonials />
@@ -191,7 +207,7 @@ function App() {
         <Contact notify={addToast} />
       </main>
       <Footer />
-      <ChatWidget notify={addToast} />
+      <ChatWidget notify={addToast} onOpenBooking={openBooking} />
       <BookingModal isOpen={isBookingOpen} onClose={closeBooking} onSubmit={handleNewAppointment} initialService={preSelectedService} />
       <PackageWizard isOpen={isWizardOpen} onClose={closeWizard} onSelectPackage={handleWizardSelect} /> 
     </div>

@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { Waves, HeartHandshake, Bath, Sparkles, ArrowRight } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Waves, HeartHandshake, Bath, Sparkles, ArrowRight, Star } from 'lucide-react';
 import { Service, SectionId } from '../types';
 
 interface ServicesProps {
@@ -8,95 +7,132 @@ interface ServicesProps {
 }
 
 const Services: React.FC<ServicesProps> = ({ onOpenBooking }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect(); // Run animation only once
+        }
+      },
+      {
+        threshold: 0.1, // Trigger when 10% of the section is visible
+        rootMargin: '0px 0px -50px 0px' // Offset slightly to ensure it feels natural
+      }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   const services: Service[] = [
     {
       id: 'hydrotherapy',
       title: 'Hidroterapi (Floating)',
-      description: 'Bebeğinizin, 36°C sıcaklıktaki ozonla temizlenen özel jakuzilerde, boyun simidi ile özgürce hareket etmesini sağlıyoruz. Bu "Floating" deneyimi, kas gelişimini hızlandırır ve denge koordinasyonunu artırır.',
+      description: 'Şanlıurfa\'da tek! 36°C ozonlu suda bebeğiniz özgürce hareket etsin. Haliliye şubemizde kas gelişimi hızlanır, gaz sancıları doğal yolla azalır.',
       iconName: 'Waves',
       imageUrl: 'https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=800&fm=webp&fit=crop'
     },
     {
       id: 'massage',
       title: 'Terapötik Bebek Masajı',
-      description: 'Uzman terapistlerimiz tarafından uygulanan ritmik masaj teknikleri ile bebeğinizin dolaşım sistemini harekete geçiriyor, kolik ağrılarını hafifletiyor ve onu derin bir uykuya hazırlıyoruz.',
+      description: 'Uzman terapistlerimizden Urfa\'daki bebeklere özel ritmik dokunuşlar. Kolik ağrılarını hafifletir, dolaşımı canlandırır ve derin uykuya hazırlar.',
       iconName: 'HeartHandshake',
-      imageUrl: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=800&fm=webp&fit=crop'
+      imageUrl: 'https://images.unsplash.com/photo-1544126566-4744398f7f73?q=80&w=800&fm=webp&fit=crop'
     },
     {
       id: 'daily-care',
       title: 'Organik Bakım & Hijyen',
-      description: 'Spa seansı sonrası, bebeğinizin hassas cildine uygun %100 organik yağlarla bakım yapıyor; tırnak, burun ve kulak temizliği gibi günlük hijyen ihtiyaçlarını profesyonelce karşılıyoruz.',
+      description: 'Hassas ciltler için %100 organik yağlarla bakım. Tırnak, burun ve kulak temizliği ile bebeğinizin günlük bakımı profesyonel ellerde.',
       iconName: 'Sparkles',
-      imageUrl: 'https://images.unsplash.com/photo-1571210862729-78a52d3779a2?q=80&w=800&fm=webp&fit=crop'
+      imageUrl: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=800&fm=webp&fit=crop'
     },
     {
       id: 'mother-baby',
-      title: 'Ebeveyn Danışmanlığı',
-      description: 'Bebeğinizin motor gelişimi, gaz masajı eğitimi ve evde uygulayabileceğiniz rahatlama rutinleri hakkında sertifikalı uzmanlarımızdan birebir danışmanlık alın.',
+      title: 'Ebeveyn Eğitimi',
+      description: 'Evde uygulayabileceğiniz gaz masajı teknikleri. Karaköprü ve Haliliye bölgesindeki ailelerimiz için birebir uzman danışmanlığı.',
       iconName: 'Bath',
-      imageUrl: 'https://images.unsplash.com/photo-1627930869687-0b4458514d02?q=80&w=800&fm=webp&fit=crop'
+      imageUrl: 'https://images.unsplash.com/photo-1607593259882-7aa7b12d5d71?q=80&w=800&fm=webp&fit=crop'
     }
   ];
 
   const getIcon = (name: string) => {
+    const props = { size: 24, className: "text-brand-dark" };
     switch (name) {
-      case 'Waves': return <Waves size={32} />;
-      case 'HeartHandshake': return <HeartHandshake size={32} />;
-      case 'Bath': return <Bath size={32} />;
-      case 'Sparkles': return <Sparkles size={32} />;
-      default: return <Waves size={32} />;
-    }
-  };
-
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    const target = e.target as HTMLImageElement;
-    const fallback = 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=800&fm=webp&fit=crop';
-    if (target.src !== fallback) {
-        target.src = fallback;
+      case 'Waves': return <Waves {...props} />;
+      case 'HeartHandshake': return <HeartHandshake {...props} />;
+      case 'Bath': return <Bath {...props} />;
+      case 'Sparkles': return <Sparkles {...props} />;
+      default: return <Waves {...props} />;
     }
   };
 
   return (
-    <section id={SectionId.SERVICES} className="min-h-screen pt-20 pb-20 bg-white">
+    <section id={SectionId.SERVICES} className="py-24 bg-gray-50" ref={sectionRef}>
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <span className="text-brand font-bold tracking-wider text-sm uppercase">Hizmetlerimiz</span>
-          <h2 className="text-3xl md:text-5xl font-bold text-gray-800 mt-2 mb-4">Minik Bedenlere Profesyonel Bakım</h2>
-          <div className="w-24 h-1.5 bg-brand mx-auto rounded-full mb-6 opacity-50"></div>
-          <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-            0-36 ay arası bebeklerin fiziksel ve duygusal ihtiyaçlarına özel olarak tasarlanmış, hijyenin en üst seviyede tutulduğu wellness hizmetlerimiz.
-          </p>
+        {/* Modern Section Header */}
+        <div className={`flex flex-col md:flex-row justify-between items-end mb-16 gap-6 transition-all duration-1000 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            <div className="max-w-2xl">
+                <div className="flex items-center gap-2 text-brand font-bold text-xs uppercase tracking-widest mb-3">
+                    <span className="w-8 h-[1px] bg-brand"></span>
+                    Hizmetlerimiz
+                </div>
+                <h2 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 leading-tight">
+                    Minik Bedenlere <br/> <span className="text-brand italic">Profesyonel Dokunuşlar</span>
+                </h2>
+            </div>
+            <p className="text-gray-500 max-w-md text-sm leading-relaxed mb-2">
+                0-36 ay arası bebeklerin fiziksel ve duygusal ihtiyaçlarına özel olarak tasarlanmış, Şanlıurfa'nın en yüksek hijyen standartlarına sahip wellness deneyimi.
+            </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {services.map((service) => (
-            <div key={service.id} className="group relative bg-white rounded-3xl overflow-hidden shadow-lg border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col h-full">
-              <div className="h-64 overflow-hidden relative">
-                <div className="absolute inset-0 bg-brand/20 group-hover:bg-brand/10 transition-colors z-10"></div>
+        {/* Bento Grid Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {services.map((service, index) => (
+            <div 
+                key={service.id} 
+                className={`group relative bg-white rounded-[2rem] p-4 flex flex-col h-full border border-gray-100 hover:border-brand/30 hover:shadow-soft transition-all duration-700 ease-out hover:-translate-y-2 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}
+                style={{ transitionDelay: `${index * 150}ms` }}
+            >
+              {/* Image Container - Soft Corners */}
+              <div className="h-56 w-full rounded-[1.5rem] overflow-hidden relative mb-6">
+                <div className="absolute inset-0 bg-brand-dark/10 group-hover:bg-transparent transition-colors z-10"></div>
                 <img 
                   src={service.imageUrl} 
                   alt={service.title} 
-                  className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
-                  onError={handleImageError}
+                  className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                  loading="lazy"
                 />
-                <div className="absolute top-4 right-4 bg-white p-3 rounded-full text-brand shadow-lg z-20 group-hover:rotate-12 transition-transform">
+                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-3 rounded-2xl shadow-sm z-20">
                   {getIcon(service.iconName)}
                 </div>
               </div>
               
-              <div className="p-6 flex flex-col flex-1">
-                <h3 className="text-xl font-bold text-gray-800 mb-3 group-hover:text-brand transition-colors">{service.title}</h3>
-                <p className="text-gray-600 text-sm leading-relaxed mb-6 flex-1">
+              <div className="px-2 flex flex-col flex-1">
+                <h3 className="text-xl font-serif font-bold text-gray-900 mb-3">{service.title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed mb-6 flex-1">
                   {service.description}
                 </p>
                 
-                <button 
-                  onClick={onOpenBooking}
-                  className="flex items-center gap-2 text-brand font-bold text-sm uppercase tracking-wide group-hover:gap-3 transition-all"
-                >
-                  Randevu Al <ArrowRight size={16} />
-                </button>
+                <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
+                    <div className="flex items-center gap-1 text-xs font-bold text-gray-400">
+                        <Star size={12} className="text-brand-gold fill-current" /> 5.0
+                    </div>
+                    <button 
+                    onClick={onOpenBooking}
+                    className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-900 hover:bg-brand hover:text-white transition-all duration-300"
+                    >
+                    <ArrowRight size={18} />
+                    </button>
+                </div>
               </div>
             </div>
           ))}

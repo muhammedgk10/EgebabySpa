@@ -36,6 +36,7 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
     { id: SectionId.HOME, label: 'Ana Sayfa' },
     { id: SectionId.SERVICES, label: 'Hizmetler' },
     { id: SectionId.PACKAGES, label: 'Paketler' },
+    { id: SectionId.GALLERY, label: 'Galeri' },
     { id: SectionId.BENEFITS, label: 'Faydaları' },
     { id: SectionId.BLOG, label: 'Blog' },
     { id: SectionId.CONTACT, label: 'İletişim' },

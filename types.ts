@@ -91,6 +91,7 @@ export enum SectionId {
   ABOUT = 'about',
   SERVICES = 'services',
   PACKAGES = 'packages',
+  GALLERY = 'gallery',
   BLOG = 'blog',
   BENEFITS = 'benefits',
   CONTACT = 'contact',

@@ -1,18 +1,19 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Bot, Sparkles, ChevronRight } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, Sparkles, ChevronRight, Calendar } from 'lucide-react';
 import { createChatSession, sendMessageToGemini } from '../services/geminiService';
 import { ChatMessage } from '../types';
 import { Chat } from '@google/genai';
 
 interface ChatWidgetProps {
   notify?: (type: 'success' | 'error' | 'info', title: string, message: string) => void;
+  onOpenBooking?: (serviceName?: string) => void;
 }
 
-const ChatWidget: React.FC<ChatWidgetProps> = ({ notify }) => {
+const ChatWidget: React.FC<ChatWidgetProps> = ({ notify, onOpenBooking }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'model', text: 'Merhaba! Ben Ege Asistan. 🌿 Bebeğinizin gelişimi, spa paketlerimiz veya randevu süreçleri hakkında bana dilediğinizi sorabilirsiniz.' }
+    { role: 'model', text: 'Merhaba! Ben Ege Asistan. 🌿 Bebeğinizin gelişimi, spa paketlerimiz hakkında bilgi verebilir veya sizin için hemen randevu oluşturabilirim.' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -20,10 +21,10 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ notify }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const suggestedQuestions = [
-    "Hizmetleriniz neler?",
-    "Fiyatlar hakkında bilgi alabilir miyim?",
-    "Hidroterapi nedir?",
-    "Randevu nasıl alırım?"
+    "Fiyatlar neler?",
+    "Randevu al",
+    "Kardeş paketi nedir?",
+    "Hidroterapi faydaları"
   ];
 
   useEffect(() => {
@@ -51,8 +52,18 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ notify }) => {
     setIsLoading(true);
 
     try {
-      const responseText = await sendMessageToGemini(chatSession, userMessage);
-      setMessages(prev => [...prev, { role: 'model', text: responseText }]);
+      const response = await sendMessageToGemini(chatSession, userMessage);
+      
+      setMessages(prev => [...prev, { role: 'model', text: response.text }]);
+
+      // Handle Actions (Function Calls)
+      if (response.action === 'openBooking' && onOpenBooking) {
+        setTimeout(() => {
+            onOpenBooking(response.actionParams?.serviceName);
+            // Optional: Notify visually inside chat too?
+        }, 1000);
+      }
+
     } catch (error) {
       setMessages(prev => [...prev, { role: 'model', text: 'Üzgünüm, bir bağlantı sorunu oluştu. Lütfen biraz sonra tekrar deneyin.', isError: true }]);
     } finally {
@@ -151,7 +162,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ notify }) => {
           {/* Suggestions & Input Area */}
           <div className="bg-white border-t border-gray-100">
             {/* Chips */}
-            {messages.length < 4 && !isLoading && (
+            {messages.length < 10 && !isLoading && (
                 <div className="px-4 pt-3 pb-1 overflow-x-auto whitespace-nowrap scrollbar-hide flex gap-2">
                     {suggestedQuestions.map((q, i) => (
                         <button 
@@ -162,6 +173,13 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ notify }) => {
                             {q}
                         </button>
                     ))}
+                    {/* Direct Booking Chip */}
+                    <button 
+                         onClick={() => onOpenBooking?.()}
+                         className="inline-flex items-center gap-1 px-3 py-1.5 bg-brand/10 border border-brand/20 rounded-full text-xs font-bold text-brand hover:bg-brand hover:text-white transition-colors"
+                    >
+                        <Calendar size={12} /> Randevu Al
+                    </button>
                 </div>
             )}
 

@@ -29,7 +29,7 @@ const Benefits: React.FC = () => {
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const target = e.target as HTMLImageElement;
-    const fallback = 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=800&fm=webp&fit=crop';
+    const fallback = 'https://images.unsplash.com/photo-1515488042361-25f4682ae2c5?q=80&w=800&fm=webp&fit=crop';
     if (target.src !== fallback) {
         target.src = fallback;
     }
@@ -44,8 +44,9 @@ const Benefits: React.FC = () => {
            {/* Decorative Background Element */}
            <div className="absolute inset-0 bg-brand/10 rounded-[3rem] transform -rotate-3 scale-95 z-0 transition-all duration-700 ease-out group-hover:rotate-0 group-hover:scale-100 group-hover:bg-brand/20"></div>
            
+           {/* New Main Image - Happy baby in spa context */}
            <img 
-             src="https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=800&auto=format&fit=crop" 
+             src="https://images.unsplash.com/photo-1596956614486-13a832f0599c?q=80&w=800&auto=format&fit=crop" 
              alt="Happy Relaxed Baby Spa" 
              className="relative z-10 rounded-[3rem] shadow-2xl w-full h-[500px] object-cover transition-all duration-700 ease-out group-hover:scale-105 group-hover:-translate-y-2 group-hover:shadow-brand/20 border-8 border-white"
              onError={handleImageError}

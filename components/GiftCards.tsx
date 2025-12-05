@@ -5,9 +5,9 @@ import { SectionId } from '../types';
 
 const GiftCards: React.FC = () => {
   const cards = [
-    { value: 500, price: 500, color: 'bg-[#98D8D8]' },
-    { value: 1000, price: 900, color: 'bg-[#E8D5B5]', discount: '%10 İndirim' },
-    { value: 2500, price: 2000, color: 'bg-[#E8A87C]', discount: '%20 İndirim' },
+    { value: 500, price: 500, color: 'bg-[#CFE8E6]' }, // Soft Teal tint
+    { value: 1000, price: 900, color: 'bg-[#FCEFC7]', discount: '%10 İndirim' }, // Soft Gold/Sand tint
+    { value: 2500, price: 2000, color: 'bg-[#F8DCD5]', discount: '%20 İndirim' }, // Soft Accent/Peach tint
   ];
 
   return (
