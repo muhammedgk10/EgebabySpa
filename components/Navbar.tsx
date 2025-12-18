@@ -34,10 +34,12 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
 
   const navLinks = [
     { id: SectionId.HOME, label: 'Ana Sayfa' },
+    { id: SectionId.ABOUT, label: 'Hakkımızda' },
     { id: SectionId.SERVICES, label: 'Hizmetler' },
     { id: SectionId.PACKAGES, label: 'Paketler' },
     { id: SectionId.GALLERY, label: 'Galeri' },
     { id: SectionId.BENEFITS, label: 'Faydaları' },
+    { id: SectionId.FAQ, label: 'SSS' },
     { id: SectionId.BLOG, label: 'Blog' },
     { id: SectionId.CONTACT, label: 'İletişim' },
   ];
@@ -57,7 +59,7 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
         </div>
 
         {/* Desktop Menu */}
-        <div className="hidden lg:flex items-center space-x-8">
+        <div className="hidden lg:flex items-center space-x-6 xl:space-x-8">
           {navLinks.map((link) => (
             <button
               key={link.id}
@@ -98,7 +100,7 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenBooking }) => {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="lg:hidden bg-white absolute top-full left-0 w-full shadow-xl border-t border-gray-100 py-6 flex flex-col items-center space-y-4 animate-fade-in-down h-screen">
+        <div className="lg:hidden bg-white absolute top-full left-0 w-full shadow-xl border-t border-gray-100 py-6 flex flex-col items-center space-y-4 animate-fade-in-down h-screen overflow-y-auto">
           {navLinks.map((link) => (
             <button
               key={link.id}

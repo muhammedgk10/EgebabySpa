@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { MapPin, Phone, Mail, Instagram, Facebook, Send, Loader2, CheckCircle } from 'lucide-react';
+import { MapPin, Phone, Mail, Instagram, Facebook, Send, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { SectionId } from '../types';
 import { addContactMessage } from '../services/firebaseService';
 
@@ -13,11 +14,56 @@ const Contact: React.FC<ContactProps> = ({ notify }) => {
     email: '',
     message: ''
   });
+  
+  const [errors, setErrors] = useState({
+    name: '',
+    email: '',
+    message: ''
+  });
+
+  const [touched, setTouched] = useState({
+    name: false,
+    email: false,
+    message: false
+  });
+
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
+
+  const validateField = (name: string, value: string) => {
+    switch (name) {
+      case 'name':
+        if (!value.trim()) return 'Ad Soyad zorunludur.';
+        if (value.trim().length < 3) return 'En az 3 karakter girmelisiniz.';
+        return '';
+      case 'email':
+        if (!value.trim()) return 'E-posta adresi zorunludur.';
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value)) return 'Geçerli bir e-posta adresi giriniz.';
+        return '';
+      case 'message':
+        if (!value.trim()) return 'Mesaj alanı zorunludur.';
+        if (value.trim().length < 10) return 'Mesajınız en az 10 karakter olmalıdır.';
+        return '';
+      default:
+        return '';
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.email || !formData.message) return;
+    
+    // Validate all fields on submit
+    const nameError = validateField('name', formData.name);
+    const emailError = validateField('email', formData.email);
+    const messageError = validateField('message', formData.message);
+
+    setErrors({ name: nameError, email: emailError, message: messageError });
+    setTouched({ name: true, email: true, message: true });
+
+    if (nameError || emailError || messageError) {
+        if (notify) notify('error', 'Form Eksik', 'Lütfen işaretli alanları kontrol ediniz.');
+        return;
+    }
 
     setStatus('submitting');
 
@@ -25,6 +71,8 @@ const Contact: React.FC<ContactProps> = ({ notify }) => {
       await addContactMessage(formData);
       setStatus('success');
       setFormData({ name: '', email: '', message: '' });
+      setTouched({ name: false, email: false, message: false });
+      setErrors({ name: '', email: '', message: '' });
       
       if (notify) {
           notify('success', 'Mesaj Gönderildi', 'En kısa sürede size dönüş yapacağız.');
@@ -44,6 +92,17 @@ const Contact: React.FC<ContactProps> = ({ notify }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Real-time validation if field was already touched
+    if (touched[name as keyof typeof touched]) {
+        setErrors(prev => ({ ...prev, [name]: validateField(name, value) }));
+    }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const { name, value } = e.target;
+      setTouched(prev => ({ ...prev, [name]: true }));
+      setErrors(prev => ({ ...prev, [name]: validateField(name, value) }));
   };
 
   return (
@@ -144,47 +203,74 @@ const Contact: React.FC<ContactProps> = ({ notify }) => {
                 ) : (
                   <>
                     <h3 className="text-2xl font-bold text-gray-800 mb-6">Mesaj Gönderin</h3>
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-5">
                       <div>
                           <label className="block text-sm font-bold text-gray-700 mb-1">Adınız Soyadınız</label>
-                          <input 
-                            type="text" 
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            required
-                            className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all" 
-                            placeholder="Adınız" 
-                          />
+                          <div className="relative">
+                            <input 
+                              type="text" 
+                              name="name"
+                              value={formData.name}
+                              onChange={handleChange}
+                              onBlur={handleBlur}
+                              className={`w-full p-3 border rounded-xl outline-none transition-all ${touched.name && errors.name ? 'border-red-400 bg-red-50 focus:ring-red-200' : 'border-gray-200 focus:ring-2 focus:ring-brand focus:border-transparent'}`}
+                              placeholder="Adınız" 
+                            />
+                            {touched.name && errors.name && (
+                                <AlertCircle size={18} className="absolute right-3 top-3.5 text-red-500 animate-pulse" />
+                            )}
+                          </div>
+                          {touched.name && errors.name && (
+                             <p className="text-xs text-red-500 font-bold mt-1 ml-1">{errors.name}</p>
+                          )}
                       </div>
+                      
                       <div>
                           <label className="block text-sm font-bold text-gray-700 mb-1">E-posta Adresiniz</label>
-                          <input 
-                            type="email" 
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            required
-                            className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all" 
-                            placeholder="ornek@email.com" 
-                          />
+                          <div className="relative">
+                            <input 
+                              type="email" 
+                              name="email"
+                              value={formData.email}
+                              onChange={handleChange}
+                              onBlur={handleBlur}
+                              className={`w-full p-3 border rounded-xl outline-none transition-all ${touched.email && errors.email ? 'border-red-400 bg-red-50 focus:ring-red-200' : 'border-gray-200 focus:ring-2 focus:ring-brand focus:border-transparent'}`}
+                              placeholder="ornek@email.com" 
+                            />
+                            {touched.email && errors.email && (
+                                <AlertCircle size={18} className="absolute right-3 top-3.5 text-red-500 animate-pulse" />
+                            )}
+                          </div>
+                          {touched.email && errors.email && (
+                             <p className="text-xs text-red-500 font-bold mt-1 ml-1">{errors.email}</p>
+                          )}
                       </div>
+                      
                       <div>
                           <label className="block text-sm font-bold text-gray-700 mb-1">Mesajınız</label>
-                          <textarea 
-                            rows={4} 
-                            name="message"
-                            value={formData.message}
-                            onChange={handleChange}
-                            required
-                            className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all resize-none" 
-                            placeholder="Mesajınızı buraya yazın..."
-                          ></textarea>
+                          <div className="relative">
+                            <textarea 
+                              rows={4} 
+                              name="message"
+                              value={formData.message}
+                              onChange={handleChange}
+                              onBlur={handleBlur}
+                              className={`w-full p-3 border rounded-xl outline-none transition-all resize-none ${touched.message && errors.message ? 'border-red-400 bg-red-50 focus:ring-red-200' : 'border-gray-200 focus:ring-2 focus:ring-brand focus:border-transparent'}`}
+                              placeholder="Mesajınızı buraya yazın..."
+                            ></textarea>
+                            {touched.message && errors.message && (
+                                <AlertCircle size={18} className="absolute right-3 top-3.5 text-red-500 animate-pulse" />
+                            )}
+                          </div>
+                          {touched.message && errors.message && (
+                             <p className="text-xs text-red-500 font-bold mt-1 ml-1">{errors.message}</p>
+                          )}
                       </div>
+                      
                       <button 
                         type="submit"
                         disabled={status === 'submitting'}
-                        className="w-full py-4 bg-brand text-white font-bold rounded-xl hover:bg-brand-dark disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors shadow-lg flex items-center justify-center gap-2"
+                        className="w-full py-4 bg-brand text-white font-bold rounded-xl hover:bg-brand-dark disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors shadow-lg flex items-center justify-center gap-2 group"
                       >
                         {status === 'submitting' ? (
                           <>
@@ -192,7 +278,7 @@ const Contact: React.FC<ContactProps> = ({ notify }) => {
                           </>
                         ) : (
                           <>
-                            Gönder <Send size={18} />
+                            Gönder <Send size={18} className="group-hover:translate-x-1 transition-transform"/>
                           </>
                         )}
                       </button>

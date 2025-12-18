@@ -1,7 +1,8 @@
 
-import React, { useState, useRef, useEffect } from 'react';
-import { X, Calendar as CalendarIcon, Clock, CheckCircle, User, Phone, Mail, Sparkles, Sun, CloudSun, ChevronRight } from 'lucide-react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { X, Calendar as CalendarIcon, Clock, CheckCircle, User, Phone, Mail, Sparkles, Sun, CloudSun, ChevronRight, AlertCircle, Loader2, MessageSquare } from 'lucide-react';
 import { Appointment } from '../types';
+import { subscribeToAppointments } from '../services/firebaseService';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -19,8 +20,12 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSubmit, 
     parentName: '',
     babyName: '',
     phone: '',
-    email: ''
+    email: '',
+    notes: ''
   });
+  
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [loadingAvailability, setLoadingAvailability] = useState(false);
   
   const dateInputRef = useRef<HTMLInputElement>(null);
 
@@ -29,6 +34,31 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSubmit, 
         setFormData(prev => ({ ...prev, service: initialService }));
     }
   }, [isOpen, initialService]);
+
+  // Subscribe to appointments for real-time availability
+  useEffect(() => {
+    setLoadingAvailability(true);
+    const unsubscribe = subscribeToAppointments((data) => {
+      setAppointments(data);
+      setLoadingAvailability(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Calculate unavailable times for the selected date
+  const unavailableTimes = useMemo(() => {
+    if (!formData.date) return [];
+    return appointments
+      .filter(app => app.date === formData.date && app.status !== 'cancelled')
+      .map(app => app.time);
+  }, [formData.date, appointments]);
+
+  // Clear selected time if it becomes unavailable (e.g. date change)
+  useEffect(() => {
+    if (formData.time && unavailableTimes.includes(formData.time)) {
+        setFormData(prev => ({ ...prev, time: '' }));
+    }
+  }, [formData.date, unavailableTimes]);
 
   if (!isOpen) return null;
 
@@ -56,7 +86,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSubmit, 
       time: formData.time,
       price: price,
       phone: formData.phone,
-      email: formData.email
+      email: formData.email,
+      notes: formData.notes
     });
     
     setStep(3);
@@ -84,6 +115,34 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSubmit, 
   const afternoonSlots = ['13:30', '15:00', '16:30', '18:00'];
   
   const today = new Date().toISOString().split('T')[0];
+
+  const renderTimeSlot = (t: string) => {
+      const isTaken = unavailableTimes.includes(t);
+      const isSelected = formData.time === t;
+      
+      return (
+        <button
+            key={t}
+            type="button"
+            disabled={isTaken}
+            onClick={() => setFormData({...formData, time: t})}
+            className={`relative py-2.5 px-1 rounded-xl text-sm font-bold border transition-all duration-200 overflow-hidden ${
+                isTaken 
+                ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed opacity-70'
+                : isSelected
+                    ? 'bg-brand text-white border-brand shadow-md transform scale-105 ring-2 ring-brand/20'
+                    : 'bg-white text-gray-600 border-gray-200 hover:border-brand/50 hover:text-brand hover:bg-gray-50'
+            }`}
+        >
+            {t}
+            {isTaken && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-100/80 text-[10px] font-bold text-red-500 uppercase tracking-wider backdrop-blur-[1px]">
+                    Dolu
+                </div>
+            )}
+        </button>
+      );
+  };
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
@@ -206,51 +265,39 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSubmit, 
 
                       {/* Time Slots */}
                       <div className="lg:col-span-3 space-y-4">
-                         {/* Morning Section */}
-                         <div>
-                            <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                               <Sun size={14} /> Sabah
-                            </div>
-                            <div className="grid grid-cols-3 gap-2">
-                              {morningSlots.map((t) => (
-                                 <button
-                                   key={t}
-                                   type="button"
-                                   onClick={() => setFormData({...formData, time: t})}
-                                   className={`py-2.5 px-1 rounded-xl text-sm font-bold border transition-all duration-200 ${
-                                     formData.time === t
-                                       ? 'bg-brand text-white border-brand shadow-md transform scale-105 ring-2 ring-brand/20'
-                                       : 'bg-white text-gray-600 border-gray-200 hover:border-brand/50 hover:text-brand hover:bg-gray-50'
-                                   }`}
-                                 >
-                                   {t}
-                                 </button>
-                              ))}
-                            </div>
-                         </div>
+                         {loadingAvailability ? (
+                             <div className="h-full flex flex-col items-center justify-center text-gray-400 bg-gray-50 rounded-2xl border border-gray-100">
+                                 <Loader2 size={24} className="animate-spin mb-2 text-brand" />
+                                 <span className="text-xs font-bold">Müsaitlik Kontrol Ediliyor...</span>
+                             </div>
+                         ) : !formData.date ? (
+                             <div className="h-full flex flex-col items-center justify-center text-gray-400 bg-gray-50 rounded-2xl border border-gray-100 p-6 text-center">
+                                 <AlertCircle size={24} className="mb-2 opacity-50" />
+                                 <span className="text-xs font-bold">Lütfen önce tarih seçiniz.</span>
+                             </div>
+                         ) : (
+                             <>
+                                {/* Morning Section */}
+                                <div>
+                                    <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                                    <Sun size={14} /> Sabah
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-2">
+                                    {morningSlots.map(renderTimeSlot)}
+                                    </div>
+                                </div>
 
-                         {/* Afternoon Section */}
-                         <div>
-                            <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                               <CloudSun size={14} /> Öğleden Sonra
-                            </div>
-                            <div className="grid grid-cols-4 gap-2">
-                              {afternoonSlots.map((t) => (
-                                 <button
-                                   key={t}
-                                   type="button"
-                                   onClick={() => setFormData({...formData, time: t})}
-                                   className={`py-2.5 px-1 rounded-xl text-sm font-bold border transition-all duration-200 ${
-                                     formData.time === t
-                                       ? 'bg-brand text-white border-brand shadow-md transform scale-105 ring-2 ring-brand/20'
-                                       : 'bg-white text-gray-600 border-gray-200 hover:border-brand/50 hover:text-brand hover:bg-gray-50'
-                                   }`}
-                                 >
-                                   {t}
-                                 </button>
-                              ))}
-                            </div>
-                         </div>
+                                {/* Afternoon Section */}
+                                <div>
+                                    <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                                    <CloudSun size={14} /> Öğleden Sonra
+                                    </div>
+                                    <div className="grid grid-cols-4 gap-2">
+                                    {afternoonSlots.map(renderTimeSlot)}
+                                    </div>
+                                </div>
+                             </>
+                         )}
                       </div>
                    </div>
                 </div>
@@ -336,6 +383,19 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSubmit, 
                    </div>
                 </div>
 
+                <div>
+                    <label className="block text-gray-700 font-bold mb-2 flex items-center gap-2">
+                        <MessageSquare size={18} className="text-brand" /> Notlar / Özel İstekler
+                    </label>
+                    <textarea 
+                        rows={3}
+                        placeholder="Bebeğinizin alerjisi, özel durumu veya eklemek istedikleriniz..."
+                        className="w-full p-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all bg-gray-50 focus:bg-white resize-none"
+                        onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                        value={formData.notes}
+                    />
+                </div>
+
                 <div className="flex gap-4 pt-4">
                    <button 
                      type="button" 
@@ -376,7 +436,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, onSubmit, 
                         parentName: '',
                         babyName: '',
                         phone: '',
-                        email: ''
+                        email: '',
+                        notes: ''
                     });
                     onClose(); 
                   }}

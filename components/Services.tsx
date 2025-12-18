@@ -1,5 +1,6 @@
+
 import React, { useEffect, useRef, useState } from 'react';
-import { Waves, HeartHandshake, Bath, Sparkles, ArrowRight, Star } from 'lucide-react';
+import { Waves, HeartHandshake, Bath, Sparkles, ArrowRight, Star, Calendar } from 'lucide-react';
 import { Service, SectionId } from '../types';
 
 interface ServicesProps {
@@ -33,18 +34,25 @@ const Services: React.FC<ServicesProps> = ({ onOpenBooking }) => {
     };
   }, []);
 
+  const scrollToPackages = () => {
+    const element = document.getElementById(SectionId.PACKAGES);
+    if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   const services: Service[] = [
     {
       id: 'hydrotherapy',
       title: 'Hidroterapi (Floating)',
-      description: 'Şanlıurfa\'da tek! 36°C ozonlu suda bebeğiniz özgürce hareket etsin. Haliliye şubemizde kas gelişimi hızlanır, gaz sancıları doğal yolla azalır.',
+      description: 'Bebeğinizin suyun kaldırma kuvvetiyle özgürce hareket etmesini sağlıyoruz. 35°C ozonlu ve klorsuz suyumuzda kas gelişimi desteklenirken, gaz sancıları doğal yolla hafifler.',
       iconName: 'Waves',
       imageUrl: 'https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=800&fm=webp&fit=crop'
     },
     {
       id: 'massage',
       title: 'Terapötik Bebek Masajı',
-      description: 'Uzman terapistlerimizden Urfa\'daki bebeklere özel ritmik dokunuşlar. Kolik ağrılarını hafifletir, dolaşımı canlandırır ve derin uykuya hazırlar.',
+      description: 'Sertifikalı terapistlerimiz eşliğinde, kolik ve huzursuzluk sorunlarına yönelik özel teknikler. Bebeğinizin bağışıklık sistemini güçlendirir ve derin bir uykuya hazırlar.',
       iconName: 'HeartHandshake',
       imageUrl: 'https://images.unsplash.com/photo-1544126566-4744398f7f73?q=80&w=800&fm=webp&fit=crop'
     },
@@ -53,12 +61,12 @@ const Services: React.FC<ServicesProps> = ({ onOpenBooking }) => {
       title: 'Organik Bakım & Hijyen',
       description: 'Hassas ciltler için %100 organik yağlarla bakım. Tırnak, burun ve kulak temizliği ile bebeğinizin günlük bakımı profesyonel ellerde.',
       iconName: 'Sparkles',
-      imageUrl: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=800&fm=webp&fit=crop'
+      imageUrl: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=800&auto=format&fit=crop'
     },
     {
       id: 'mother-baby',
-      title: 'Ebeveyn Eğitimi',
-      description: 'Evde uygulayabileceğiniz gaz masajı teknikleri. Karaköprü ve Haliliye bölgesindeki ailelerimiz için birebir uzman danışmanlığı.',
+      title: 'Ebeveyn & Bebek Eğitimi',
+      description: 'Sadece spa değil, eğitim de veriyoruz. Evde uygulayabileceğiniz gaz masajı ve rahatlatma tekniklerini uzmanlarımızdan uygulamalı olarak öğrenin.',
       iconName: 'Bath',
       imageUrl: 'https://images.unsplash.com/photo-1607593259882-7aa7b12d5d71?q=80&w=800&fm=webp&fit=crop'
     }
@@ -99,7 +107,7 @@ const Services: React.FC<ServicesProps> = ({ onOpenBooking }) => {
           {services.map((service, index) => (
             <div 
                 key={service.id} 
-                className={`group relative bg-white rounded-[2rem] p-4 flex flex-col h-full border border-gray-100 hover:border-brand/30 hover:shadow-soft transition-all duration-700 ease-out hover:-translate-y-2 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}
+                className={`group relative bg-white rounded-[2rem] p-4 flex flex-col h-full border border-gray-100 hover:border-brand/30 hover:shadow-2xl transition-all duration-500 ease-out hover:-translate-y-2 hover:scale-[1.02] transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}
                 style={{ transitionDelay: `${index * 150}ms` }}
             >
               {/* Image Container - Soft Corners */}
@@ -108,7 +116,7 @@ const Services: React.FC<ServicesProps> = ({ onOpenBooking }) => {
                 <img 
                   src={service.imageUrl} 
                   alt={service.title} 
-                  className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                  className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                   loading="lazy"
                 />
                 <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-3 rounded-2xl shadow-sm z-20">
@@ -122,15 +130,31 @@ const Services: React.FC<ServicesProps> = ({ onOpenBooking }) => {
                   {service.description}
                 </p>
                 
-                <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
-                    <div className="flex items-center gap-1 text-xs font-bold text-gray-400">
-                        <Star size={12} className="text-brand-gold fill-current" /> 5.0
+                <div className="pt-4 border-t border-gray-50 flex items-center justify-between h-14 relative">
+                    {/* Default State: Rating */}
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 transition-all duration-300 opacity-100 group-hover:opacity-0 group-hover:translate-y-2 pointer-events-none">
+                         <div className="flex items-center gap-1 text-xs font-bold text-gray-400">
+                            <Star size={12} className="text-brand-gold fill-current" /> 5.0
+                        </div>
                     </div>
+                    
+                    {/* Hover State: Learn More Button */}
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 transition-all duration-300 opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0">
+                         <button 
+                            onClick={scrollToPackages}
+                            className="text-xs font-bold text-brand hover:text-brand-dark bg-brand-light/30 px-3 py-2 rounded-lg transition-all flex items-center gap-1 hover:bg-brand-light/50"
+                         >
+                            İncele 
+                            <ArrowRight size={14} />
+                         </button>
+                    </div>
+
                     <button 
                     onClick={onOpenBooking}
-                    className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-900 hover:bg-brand hover:text-white transition-all duration-300"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-900 hover:bg-brand hover:text-white transition-all duration-300 hover:scale-110 shadow-sm z-10"
+                    title="Randevu Al"
                     >
-                    <ArrowRight size={18} />
+                    <Calendar size={18} />
                     </button>
                 </div>
               </div>

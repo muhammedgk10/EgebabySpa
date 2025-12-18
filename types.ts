@@ -89,11 +89,13 @@ export interface StaffMember {
 export enum SectionId {
   HOME = 'home',
   ABOUT = 'about',
+  TEAM = 'team',
   SERVICES = 'services',
   PACKAGES = 'packages',
   GALLERY = 'gallery',
   BLOG = 'blog',
   BENEFITS = 'benefits',
+  FAQ = 'faq',
   CONTACT = 'contact',
   GIFTCARDS = 'giftcards',
 }

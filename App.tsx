@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
+import About from './components/About';
+import Team from './components/Team';
 import Services from './components/Services';
 import Packages from './components/Packages';
 import Benefits from './components/Benefits';
@@ -14,9 +16,12 @@ import AdminPanel from './components/AdminPanel';
 import Footer from './components/Footer';
 import Testimonials from './components/Testimonials';
 import ToastContainer, { ToastMessage } from './components/Toast';
-import PackageWizard from './components/PackageWizard'; // New
-import GiftCards from './components/GiftCards'; // New
-import Gallery from './components/Gallery'; // New Gallery Component
+import PackageWizard from './components/PackageWizard';
+import GiftCards from './components/GiftCards';
+import Gallery from './components/Gallery';
+import FAQ from './components/FAQ';
+import WhatsAppButton from './components/WhatsAppButton';
+import MobileAction from './components/MobileAction'; // Imported
 import { Appointment } from './types';
 import { 
   subscribeToAppointments, 
@@ -26,22 +31,21 @@ import {
   subscribeToAuth,
   logoutUser
 } from './services/firebaseService';
+import { sendBookingConfirmation } from './services/emailService';
 
 type PageView = 'home' | 'login' | 'admin';
 
 function App() {
   const [currentView, setCurrentView] = useState<PageView>('home');
   const [isBookingOpen, setIsBookingOpen] = useState(false);
-  const [isWizardOpen, setIsWizardOpen] = useState(false); // New
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [preSelectedService, setPreSelectedService] = useState(''); // New State for Wizard flow
+  const [preSelectedService, setPreSelectedService] = useState('');
   
-  // Use ref to track currentView inside callbacks without triggering re-renders
   const currentViewRef = useRef<PageView>(currentView);
 
-  // Toast State
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const addToast = (type: 'success' | 'error' | 'info', title: string, message: string) => {
@@ -54,7 +58,6 @@ function App() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  // Sync ref
   useEffect(() => {
     currentViewRef.current = currentView;
   }, [currentView]);
@@ -77,7 +80,6 @@ function App() {
         const isHashRoute = window.location.hash === '#akkayasoft' || window.location.hash === '#/akkayasoft';
         const isPathRoute = window.location.pathname === '/akkayasoft';
         
-        // Use ref to check current state to avoid dependency loop
         const view = currentViewRef.current;
         const shouldRedirect = (view === 'login' || isHashRoute || isPathRoute) && view !== 'admin';
         
@@ -88,7 +90,7 @@ function App() {
       }
     });
     return () => unsubscribe();
-  }, []); // Removed currentView from dependency array to prevent infinite loop
+  }, []);
 
   useEffect(() => {
     const unsubscribe = subscribeToAppointments((data) => {
@@ -105,7 +107,7 @@ function App() {
   
   const closeBooking = () => {
       setIsBookingOpen(false);
-      setPreSelectedService(''); // Reset after close
+      setPreSelectedService('');
   };
   
   const openWizard = () => setIsWizardOpen(true);
@@ -131,7 +133,11 @@ function App() {
   const handleNewAppointment = async (newApp: Omit<Appointment, 'id' | 'status'>) => {
     try {
       await addAppointmentToFirebase(newApp);
-      addToast('success', 'Randevu Oluşturuldu', 'Talebiniz başarıyla alındı. Sizinle iletişime geçeceğiz.');
+      
+      // Trigger email sending without blocking the UI
+      sendBookingConfirmation(newApp).catch(console.error);
+
+      addToast('success', 'Randevu Talebi Alındı', `Teşekkürler. ${newApp.email} adresine bilgilendirme gönderildi.`);
     } catch (error) {
       addToast('error', 'Hata', 'Randevu oluşturulurken bir hata oluştu.');
     }
@@ -157,7 +163,6 @@ function App() {
     }
   };
 
-  // Pre-select service from Wizard
   const handleWizardSelect = (pkgName: string) => {
      openBooking(pkgName);
      addToast('info', 'Paket Seçildi', `${pkgName} için randevu oluşturabilirsiniz.`);
@@ -192,22 +197,27 @@ function App() {
   }
 
   return (
-    <div className="bg-[#FAFAFA] min-h-screen font-sans selection:bg-brand selection:text-white flex flex-col">
+    <div className="bg-[#FAFAFA] min-h-screen font-sans selection:bg-brand selection:text-white flex flex-col pb-16 md:pb-0">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       <Navbar onOpenBooking={() => openBooking()} />
       <main className="flex-grow">
         <Hero onOpenBooking={() => openBooking()} onOpenWizard={openWizard} />
+        <About />
         <Services onOpenBooking={() => openBooking()} />
         <Packages onOpenBooking={() => openBooking()} />
+        <Team />
         <Gallery />
         <Benefits />
         <GiftCards /> 
         <Testimonials />
+        <FAQ />
         <Blog />
         <Contact notify={addToast} />
       </main>
       <Footer />
       <ChatWidget notify={addToast} onOpenBooking={openBooking} />
+      <WhatsAppButton />
+      <MobileAction onOpenBooking={() => openBooking()} />
       <BookingModal isOpen={isBookingOpen} onClose={closeBooking} onSubmit={handleNewAppointment} initialService={preSelectedService} />
       <PackageWizard isOpen={isWizardOpen} onClose={closeWizard} onSelectPackage={handleWizardSelect} /> 
     </div>

@@ -388,8 +388,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onLogout, appointments, onUpdat
                    <Droplets className="text-white" size={20} />
                 </div>
                 <div>
-                   <h2 className="text-xl font-serif font-bold text-white tracking-wide leading-none">EgePanel</h2>
-                   <span className="text-[9px] text-brand-light uppercase tracking-[0.2em] font-bold mt-1 block opacity-80">Yönetim v2.0</span>
+                   <h2 className="text-lg font-serif font-bold text-white tracking-wide leading-tight">Ege Baby Spa</h2>
+                   <span className="text-[9px] text-brand-light uppercase tracking-[0.2em] font-bold mt-1 block opacity-80">Yönetim Paneli</span>
                 </div>
              </div>
              <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden text-white/50 hover:text-white">
