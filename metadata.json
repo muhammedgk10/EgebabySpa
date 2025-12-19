@@ -1,5 +1,8 @@
 {
   "name": "Ege Baby Spa Şanlıurfa",
   "description": "Şanlıurfa Bebek Spa Merkezi. Haliliye ve Karaköprü'de uzman eşliğinde bebek masajı, hidroterapi ve floating hizmetleri.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
 }

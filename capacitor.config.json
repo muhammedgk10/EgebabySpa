@@ -1,0 +1,9 @@
+
+{
+  "appId": "com.egebabyspa.urfa",
+  "appName": "Ege Baby Spa",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}

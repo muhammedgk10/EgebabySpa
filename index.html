@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="tr-TR" class="scroll-smooth">
   <head>
@@ -16,6 +17,10 @@
     <meta name="ICBM" content="37.1674, 38.7955" />
     
     <link rel="canonical" href="https://egebabyspa.com/" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Ege Baby Spa">
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
@@ -28,10 +33,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Modern Font Eşleşmesi: Plus Jakarta Sans (UI) & Cormorant Garamond (Başlıklar) -->
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- LocalBusiness Schema Markup -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -54,25 +57,7 @@
         "@type": "GeoCoordinates",
         "latitude": 37.1674,
         "longitude": 38.7955
-      },
-      "areaServed": [
-        { "@type": "City", "name": "Şanlıurfa" },
-        { "@type": "City", "name": "Haliliye" },
-        { "@type": "City", "name": "Karaköprü" },
-        { "@type": "City", "name": "Eyyübiye" }
-      ],
-      "openingHoursSpecification": [
-        {
-          "@type": "OpeningHoursSpecification",
-          "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
-          "opens": "09:00",
-          "closes": "19:00"
-        }
-      ],
-      "sameAs": [
-        "https://www.instagram.com/egebabyspa",
-        "https://www.facebook.com/egebabyspa"
-      ]
+      }
     }
     </script>
 
@@ -90,34 +75,25 @@
             colors: {
               brand: {
                 light: '#E0F2F1', 
-                DEFAULT: '#2A9D8F', // Orijinal marka rengi korundu
-                dark: '#1D6D63', // Daha derin kontrast için koyulaştırıldı
-                sand: '#F3F4F6', // Daha modern gri/kum tonu
-                gold: '#D4A373', // Daha sofistike altın
+                DEFAULT: '#2A9D8F',
+                dark: '#1D6D63',
+                sand: '#F3F4F6',
+                gold: '#D4A373',
                 surface: '#FFFFFF',
-                accent: '#E76F51', // Accent color for discount badges etc
-              }
-            },
-            boxShadow: {
-              'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
-              'soft': '0 20px 40px -15px rgba(0, 0, 0, 0.05)',
-            },
-            animation: {
-              'fade-in-up': 'fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-              'float': 'float 6s ease-in-out infinite',
-            },
-            keyframes: {
-              fadeInUp: {
-                '0%': { opacity: '0', transform: 'translateY(20px)' },
-                '100%': { opacity: '1', transform: 'translateY(0)' },
-              },
-              float: {
-                '0%, 100%': { transform: 'translateY(0)' },
-                '50%': { transform: 'translateY(-10px)' },
+                accent: '#E76F51',
               }
             }
           }
         }
+      };
+
+      // Service Worker Registration for PWA
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(err => {
+            console.log('SW registration failed: ', err);
+          });
+        });
       }
     </script>
   <script type="importmap">
